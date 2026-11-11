@@ -284,6 +284,19 @@ describe("backup chain", () => {
     expect(log.sessions).toBe(1);
     expect(ev2[ev2.length - 1]).toEqual({ type: "done", cached: true });
   });
+
+  it("does not cache a fallback answer", async () => {
+    const limited = mockProvider("claude", [httpError(429)]);
+    const groq = mockProvider("groq", GOOD_PO2);
+    const req = { messages: [{ role: "user" as const, content: "pO2 at 34% and 8.2 psi, after a limit?" }], missionId: "iss", level: "student" as const, engine: "auto" as const };
+    const ev1: VestaEvent[] = [];
+    const ev2: VestaEvent[] = [];
+    const deps = { providers: { claude: limited.provider, groq: groq.provider }, chunkDelayMs: 0, log: () => {} };
+    await runVesta(req, (e) => ev1.push(e), deps);
+    await runVesta(req, (e) => ev2.push(e), deps);
+    expect(groq.log.sessions).toBe(2);
+    expect(ev2[ev2.length - 1]).toEqual({ type: "done" });
+  });
 });
 
 // ------------------------------------------------------------------ engines endpoint
@@ -344,6 +357,20 @@ describe("offline mode", () => {
     expect(detectIntent("Compare the investigations")).toBe("compare");
     expect(detectIntent("What is a cool flame?")).toBe("explain_topic");
     expect(detectIntent("sing me a song")).toBe("unknown");
+    expect(detectIntent("What oxygen levels were tested in the CFI droplet experiments?")).toBe("investigation");
+    expect(detectIntent("What fuels did SPICE use?")).toBe("investigation");
+    expect(detectIntent("Is the rover covered by ACME tests?")).toBe("assess");
+    expect(detectIntent("What data is missing for CFI?")).toBe("gaps");
+  });
+
+  it("answers what one investigation tested with its real ranges", async () => {
+    const cfi = await runOffline({ message: "What oxygen levels were tested in the CFI droplet experiments?", missionId: "iss", level: "student", emit: () => {} });
+    expect(cfi.intent).toBe("investigation");
+    expect(cfi.text).toContain("Oxygen: 17–21%");
+    expect(cfi.text).not.toContain("ISS value");
+    const spice = await runOffline({ message: "Under what pressure and oxygen did SPICE run?", level: "student", emit: () => {} });
+    expect(spice.text).toContain("Oxygen: 21%");
+    expect(spice.text).toContain("SPICE_Report");
   });
 
   const cases: [string, string[]][] = [
@@ -355,6 +382,8 @@ describe("offline mode", () => {
     ["Run a safety audit for the rover", ["physics_calc", "envelope_check", "nearest_tests", "safety_audit"]],
     ["Explain ACME-CFIG-128", ["query_data", "physics_calc", "ui_action"]],
     ["What is a cool flame?", ["search_docs"]],
+    ["What oxygen levels were tested in the CFI droplet experiments?", ["query_data", "ui_action"]],
+    ["Under what pressure and oxygen did SPICE run?", ["query_data", "search_docs", "ui_action"]],
   ];
   for (const [q, tools] of cases) {
     it(`answers "${q}" with tools, sources, confidence and only grounded numbers`, async () => {

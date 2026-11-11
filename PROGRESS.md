@@ -7,6 +7,20 @@
 
 ## Log
 
+### Stability and docs fixes (2026-11-11, branch `fix/stability-and-docs`)
+**Done**
+- Offline mode: new `investigation` intent. A question about what one investigation covered ("What oxygen levels were tested in the CFI droplet experiments?") now answers with that investigation's O2, pressure, airflow and fuel ranges from `query_data`, instead of the generic mission assessment. SPICE answers say its O2/pressure are documented conditions and cite the report page via `search_docs`. Airflow leaves out rows that failed the range check, as `/dataset` does. Questions that name a mission still go to `assess`.
+- Router: an answer that needed a fallback is no longer cached, so after a short outage the same question reaches the recovered engine instead of replaying the fallback for 10 minutes.
+- Fonts are self-hosted with `next/font/local` (`app/fonts/`, latin woff2 from Fontsource 5.3.0, SIL OFL licences included). Builds no longer download from Google Fonts. Three clean `npm run build` runs in a row passed; the built site serves the fonts as `font/woff2` with no Google Fonts reference.
+- `scripts/ingest/requirements.txt` pinned to exact versions. With them, `ingest.py` reproduced `data/processed/` exactly (line endings aside) and the 6 pytest tests passed; all 9 raw files match the checksums in `sources.json`.
+- CLAUDE.md: the ACME table holds only CFI-G (BRE and E-FIELD are PDF text only); no Mars habitat preset; the font rule now says self-hosted.
+- 4 new tests (170 in total). Blueprint cache story updated and marked reviewed.
+
+**Not done (needs the owner)**
+- AI-engine evals: need the keys and fresh free limits.
+- OpenRouter's 50 requests per day: add credits, or decide to move Groq ahead of it in the chain.
+- "Phase 6: launch" commit and v1.0 tag.
+
 ### Blueprint link and pipeline watch (at the user's request)
 **Done**
 - Small "How HEARTH works" link in the site footer, on every page. It opens `/blueprint.html` in a new tab and is not in the side menu.

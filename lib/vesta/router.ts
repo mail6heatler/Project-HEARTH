@@ -139,7 +139,8 @@ export async function runVesta(req: VestaRequest, emit: Emit, deps: RouterDeps =
     out({ type: "sources", sources: result.sources });
     out({ type: "confidence", confidence: result.confidence, note: result.confidenceNote });
     out({ type: "done" });
-    if (useCache) {
+    // A fallback answer is not cached: once the failed engine recovers, the same question should reach it again.
+    if (useCache && !failures.length) {
       if (cache.size >= CACHE_MAX) cache.delete(cache.keys().next().value as string);
       cache.set(key, { at: Date.now(), events: recorded.filter((e) => e.type !== "step") });
     }

@@ -1,11 +1,35 @@
 import type { Metadata } from "next";
-import { Chakra_Petch, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import { AppShell } from "@/components/layout/AppShell";
 import "./globals.css";
 
-const head = Chakra_Petch({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-head" });
-const sans = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-sans" });
-const mono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-mono" });
+// Self-hosted (latin subset, SIL OFL; licences in app/fonts) so builds never depend on Google Fonts being reachable.
+const head = localFont({
+  src: [
+    { path: "./fonts/chakra-petch-latin-500-normal.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/chakra-petch-latin-600-normal.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/chakra-petch-latin-700-normal.woff2", weight: "700", style: "normal" },
+  ],
+  variable: "--font-head",
+  display: "swap",
+});
+const sans = localFont({
+  src: [
+    { path: "./fonts/ibm-plex-sans-latin-400-normal.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/ibm-plex-sans-latin-500-normal.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/ibm-plex-sans-latin-600-normal.woff2", weight: "600", style: "normal" },
+  ],
+  variable: "--font-sans",
+  display: "swap",
+});
+const mono = localFont({
+  src: [
+    { path: "./fonts/ibm-plex-mono-latin-400-normal.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/ibm-plex-mono-latin-500-normal.woff2", weight: "500", style: "normal" },
+  ],
+  variable: "--font-mono",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: { default: "HEARTH · Team Polaris", template: "%s · HEARTH" },

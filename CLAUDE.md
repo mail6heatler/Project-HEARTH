@@ -1,7 +1,7 @@
 # HEARTH — Team Polaris · NASA Space Apps Challenge 2026
 
 ## What we are building
-HEARTH (Habitat Environment Analysis & Risk Tracking Hub) is an AI-powered web dashboard that summarizes, ranks and interprets NASA microgravity combustion experiments to give fire-safety insights for crewed habitats: ISS, lunar base, pressurized rovers, Mars habitats.
+HEARTH (Habitat Environment Analysis & Risk Tracking Hub) is an AI-powered web dashboard that summarizes, ranks and interprets NASA microgravity combustion experiments to give fire-safety insights for crewed habitats: ISS, lunar base, pressurized rovers, spacesuits. (No Mars habitat preset: there are no sourced Mars cabin values, and no test ran at Mars gravity.)
 
 It is guided by VESTA (Virtual Engineer for Space-fire Threat Assessment), an AI crewmate built as a tool-using agent. VESTA computes, charts, compares and audits inside the dashboard: its tool results change what the dashboard shows.
 
@@ -16,7 +16,7 @@ It is guided by VESTA (Virtual Engineer for Space-fire Threat Assessment), an AI
 - Secrets: `.env.local` locally (git-ignored) and Vercel Environment Variables online. Possible keys: `ANTHROPIC_API_KEY`, `OPENROUTER_API_KEY`, `GROQ_API_KEY`, `GEMINI_API_KEY`, plus `ANTHROPIC_MODEL`, `OPENROUTER_MODEL`, `GROQ_MODEL`, `GEMINI_MODEL`. Every key is OPTIONAL; an empty value or a value containing `PASTE` counts as missing. NEVER print, log or commit a key.
 
 ## About the data
-- ACME: gaseous-fuel flames in the Combustion Integrated Rack (CIR). Includes BRE (still-air material flammability), CFI-G (oxidizer up to 85% O2), E-FIELD Flames (electric field mimics partial gravity).
+- ACME: gaseous-fuel flames in the Combustion Integrated Rack (CIR). The table holds only the CFI-G campaign (normal and inverse spherical flames, oxidizer up to 85% O2). BRE (still-air material flammability) and E-FIELD Flames (electric field mimics partial gravity) appear only as text in the PDFs, not as table rows (DATA_NOTES.md Q4).
 - CFI: Cool Flames Investigation. Liquid fuel droplets, MDCA in the CIR.
 - SPICE: Smoke Point In Co-flow Experiment. Gaseous coflow flames in the Microgravity Science Glovebox flow duct.
 - No partial-gravity combustion data exists in PSI yet (future: LUCI, FM2). Microgravity and 1g results bound lunar/Mars gravity.
@@ -104,7 +104,7 @@ Calm, precise, a little dry humour. Speaks first when it sees a hazard. Three ex
 ## Look and feel
 - Dark "mission control". Background #070B14, panel #0D1322, raised #131B2E, lines #1F2A44, text #E8ECF6, muted #97A3BC.
 - Accent ember #FF7A2F (soft #FFB98A). ACME #4CC9F0, CFI #A78BFA, SPICE #5EE6A8. Status: ok #5EE6A8, warn #FFC857, bad #FF5D6C.
-- Fonts via next/font/google: Chakra Petch (headings), IBM Plex Sans (text), IBM Plex Mono (numbers).
+- Fonts self-hosted with next/font/local from `app/fonts/` (latin woff2 files, SIL OFL licences beside them): Chakra Petch (headings), IBM Plex Sans (text), IBM Plex Mono (numbers). Do not switch back to next/font/google: it downloaded the fonts at build time and made builds fail now and then.
 - Layout: sticky top bar (logo, mission chips, status) · left nav · main view · VESTA panel on the right (moves below on small screens). Must work at 400px wide.
 - Lively but tasteful: chart entry animations, pulsing mission marker, streaming chat, animated VESTA orb. Respect prefers-reduced-motion. Real buttons and labels, visible focus.
 

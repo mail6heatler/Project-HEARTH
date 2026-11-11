@@ -13,7 +13,7 @@ import { runTool } from "./tools";
 import type { ChartPayload } from "./tools/make_chart";
 import type { UiEvent } from "./tools/ui_action";
 
-export type Intent = "help" | "explain_test" | "compare" | "gaps" | "rank" | "safety" | "calc" | "assess" | "explain_topic" | "unknown";
+export type Intent = "help" | "explain_test" | "compare" | "gaps" | "rank" | "safety" | "calc" | "investigation" | "assess" | "explain_topic" | "unknown";
 
 export interface Parsed {
   o2_pct?: number;
@@ -68,6 +68,8 @@ export function detectIntent(msg: string, p: Parsed = parseMessage(msg)): Intent
   if (/safety|audit|hazard|fire risk|danger|\brisk/.test(t)) return "safety";
   // a pure calculation (pO2, ratio, conversion) that does not ask about test coverage
   if (/po2|partial pressure|\bratio\b|calculat|comput|convert/.test(t) && !/tested|envelope|assess|inside|covered|\bdata\b|safe/.test(t)) return "calc";
+  // what one investigation covered ("What oxygen levels were tested in CFI?"), not a check of given conditions
+  if (p.investigations.length === 1 && p.o2_pct == null && p.pressure_psi == null && !p.mission && /oxygen|\bo2\b|pressure|condition|fuel|airflow|\bflow\b|tested|\brun\b|\bran\b|range|levels?\b|how many|\btests?\b/.test(t)) return "investigation";
   if (p.o2_pct != null || p.pressure_psi != null || /assess|condition|envelope|tested|safe|cabin/.test(t) || p.mission) return "assess";
   if (/what is|what are|what's|explain|how does|how do|why|tell me about|define|describe/.test(t)) return "explain_topic";
   return "unknown";
@@ -204,6 +206,39 @@ async function calc(c: Ctx, p: Parsed, level: Level): Promise<string[]> {
   return out;
 }
 
+async function investigation(c: Ctx, inv: Investigation): Promise<string[]> {
+  type S = { min: number | null; max: number | null };
+  const r = (await call(c, "query_data", { investigation: [inv], group_by: "fuel", limit: 1 })).data as {
+    total: number; o2_pct: S; pressure_psi: S; flow_cm_s: S; groups?: { key: string; n: number }[];
+  };
+  if (!r.total) {
+    c.conf.push("no_data");
+    return [`I found no countable ${inv} tests in the data.`];
+  }
+  const out = [`${inv} has ${r.total} countable tests (duplicate rows left out):`];
+  out.push(`• Oxygen: ${range(r.o2_pct.min, r.o2_pct.max)}%.`);
+  out.push(`• Pressure: ${range(r.pressure_psi.min, r.pressure_psi.max)} psi.`);
+  let flow = r.flow_cm_s;
+  let flowNote = "";
+  if (flow.min != null && flow.min < 0) {
+    // negative air speeds failed the range check (range_check_failed:flow); leave them out, as /dataset does
+    flow = ((await call(c, "query_data", { investigation: [inv], flow_min: 0, limit: 1 })).data as { flow_cm_s: S }).flow_cm_s;
+    flowNote = " (rows with a negative value failed the range check and are left out)";
+  }
+  out.push(`• Airflow: ${flow.min == null ? "not recorded" : `${range(flow.min, flow.max)} cm/s${flowNote}`}.`);
+  if (r.groups?.length) out.push(`• Fuels: ${r.groups.map((g) => `${g.key} (${g.n})`).join(", ")}.`);
+  if (inv === "SPICE") {
+    // SPICE rows carry no O2 or pressure column: the values come from the report (conditions_from_doc)
+    const d = (await call(c, "search_docs", { query: "parameters assume conditions 101 kPa 21% O2", investigation: "SPICE", limit: 1 })).data as {
+      passages: { source_file: string; page: number }[];
+    };
+    const doc = d.passages[0];
+    out.push(`The SPICE table has no oxygen or pressure column, so these values are the documented conditions${doc ? ` ${cite({ file: doc.source_file, page: doc.page })}` : ""}, not per-row measurements.`);
+  }
+  await call(c, "ui_action", { action: "go_view", view: "explorer" });
+  return out;
+}
+
 async function compare(c: Ctx, p: Parsed): Promise<string[]> {
   const invs = p.investigations.length >= 2 ? p.investigations.slice(0, 3) : (["ACME", "CFI", "SPICE"] as Investigation[]);
   const r = (await call(c, "compare", { investigations: invs })).data as {
@@ -337,6 +372,9 @@ export async function runOffline(input: { message: string; missionId?: string; l
       break;
     case "calc":
       lines = await calc(c, p, input.level);
+      break;
+    case "investigation":
+      lines = await investigation(c, p.investigations[0]);
       break;
     case "assess":
       lines = await assess(c, p, input.level, false);
