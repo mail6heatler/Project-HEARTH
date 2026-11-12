@@ -189,9 +189,16 @@ export function chapterAt(chapters: DemoChapter[], t: number): number {
   return idx;
 }
 
-/** A separate audio track has drifted from the picture enough to be heard: put it back. */
-export function needsResync(videoT: number, audioT: number, tolerance = 0.12): boolean {
-  return Math.abs(videoT - audioT) > tolerance;
+/**
+ * Keeps a separate audio track in step with the picture. `drift` = picture time − track time (seconds). A
+ * small drift is evened out by playing the track a touch faster or slower (no audible jump; browsers keep the
+ * pitch); only a big one, or a seek, is a jump.
+ */
+export function steer(drift: number): { jump: boolean; rate: number } {
+  const d = Math.abs(drift);
+  if (d > 0.3) return { jump: true, rate: 1 };
+  if (d < 0.03) return { jump: false, rate: 1 };
+  return { jump: false, rate: Math.round((1 + Math.sign(drift) * Math.min(0.06, d * 0.5)) * 1000) / 1000 };
 }
 
 /** m:ss for the player. */

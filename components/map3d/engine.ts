@@ -558,6 +558,8 @@ export class HabitatEngine {
     if (this.disposed) return;
     this.raf = requestAnimationFrame(this.loop);
     if (!this.visible || now - this.lastFrame < this.frameMs) return;
+    // the demo video is playing over the page: leave the computer to it
+    if (document.documentElement.classList.contains("demo-watching")) return;
     this.lastFrame = now;
 
     if (this.fly) {

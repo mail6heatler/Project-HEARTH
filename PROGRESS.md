@@ -17,6 +17,8 @@
 - Recorded take: 85 s, 1920×1080 at 60 fps, 30 MB, all 12 chapters, no page errors. Filming pacing: LAUNCH is pressed on the narration word "real" (no idle dashboard at the start) and page changes are a quick cut (about 0.3 s dark), since nothing is ever still loading on film.
 - Player checked in headless Chrome: voice and music stay within 0.04 s of the picture (also after a chapter jump), subtitles follow the voice, mute / CC / Space / end screen / Esc work, a missing video offers the live show, no sideways scroll at 400 px. Lint, 228 tests and the build pass.
 
+- Playback hardening after testing the live site: while the video plays, the page behind it is not drawn and the 3D map and starfield rest (headless Chrome stalled every few seconds before; none after, with 29 s already buffered it was never the network). Voice and music are kept in step gently (a touch faster or slower, a jump only past 0.3 s), a track that stops by itself is restarted, and a track that fails to load is retried once, then the video's mixed sound plays instead. Stress test: largest gap 0.02–0.05 s over 25 s.
+
 **Decisions**
 - Voice: Microsoft Aria via edge-tts (the user chose it; only the public narration text is sent). ffmpeg and the Chrome driver live in `.tools/` on this PC, never in the website's dependencies.
 - One video with everything mixed (the download) plus separate voice and music tracks played in sync, so the toggles work without a second copy of the video.

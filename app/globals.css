@@ -1216,6 +1216,14 @@ html.presenting .vesta-stars { animation: none; }
 }
 .present-dock.is-shown { opacity: 1; transform: none; pointer-events: auto; }
 /* cinema bars */
+/* the demo video is playing: the page behind it is not drawn (its layout stays, so nothing jumps on close) */
+html.demo-watching #hearth-stage,
+html.demo-watching .shell-top,
+html.demo-watching .space-backdrop,
+html.demo-watching canvas.fixed {
+  visibility: hidden;
+}
+
 /* cinema bars: the page is fitted between them, never hidden behind them */
 html.present-letterbox { --lb: 6.5vh; }
 html.present-letterbox body { padding-top: var(--lb); padding-bottom: var(--lb); }

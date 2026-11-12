@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { chapterAt, clock, cueAt, DEMO_DIR, DEMO_MANIFEST, formatBytes, needsResync, parseManifest, wordAt, type DemoManifest } from "@/lib/presenter/demo";
+import { chapterAt, clock, cueAt, DEMO_DIR, DEMO_MANIFEST, formatBytes, parseManifest, steer, wordAt, type DemoManifest } from "@/lib/presenter/demo";
 import { useHearth } from "@/lib/store";
 
 type Stage = "card" | "playing" | "ended";
@@ -31,6 +31,8 @@ export function DemoPlayer() {
   const [barShown, setBarShown] = useState(true);
   const [broken, setBroken] = useState(false);
   const [full, setFull] = useState(false);
+  /** A separate track failed to load: play the sound mixed into the video instead (one switch for all sound). */
+  const [mixed, setMixed] = useState(false);
 
   const shell = useRef<HTMLDivElement>(null);
   const video = useRef<HTMLVideoElement>(null);
@@ -38,6 +40,7 @@ export function DemoPlayer() {
   const music = useRef<HTMLAudioElement>(null);
   const playBtn = useRef<HTMLButtonElement>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout>>();
+  const retried = useRef(new Set<HTMLAudioElement>());
 
   // ?present (or ?present=1) opens it; ?present=live and ?present=record belong to the live presentation
   useEffect(() => {
@@ -63,14 +66,31 @@ export function DemoPlayer() {
   }, [open, load.state]);
 
   const m = load.state === "ready" ? load.m : null;
-  const separate = !!(m?.voice && m?.music);
+  const separate = !!(m?.voice && m?.music) && !mixed;
   const tracks = () => [voice.current, music.current].filter((a): a is HTMLAudioElement => !!a);
 
-  /** Puts the voice and music back in step with the picture. */
+  /** A track failed to load: try it once more (sync() puts it back in step), then fall back to the mixed sound. */
+  const onTrackError = (e: React.SyntheticEvent<HTMLAudioElement>) => {
+    const a = e.currentTarget;
+    if (!retried.current.has(a)) {
+      retried.current.add(a);
+      a.load();
+      return;
+    }
+    setMixed(true);
+  };
+
+  /** Keeps the voice and music in step with the picture (gently, see `steer`), and restarts one that stopped by itself. */
   const sync = useCallback((force = false) => {
     const v = video.current;
     if (!v) return;
-    for (const a of [voice.current, music.current]) if (a && (force || needsResync(v.currentTime, a.currentTime))) a.currentTime = v.currentTime;
+    for (const a of [voice.current, music.current]) {
+      if (!a) continue;
+      const s = force ? { jump: true, rate: 1 } : steer(v.currentTime - a.currentTime);
+      if (s.jump) a.currentTime = v.currentTime;
+      if (a.playbackRate !== s.rate) a.playbackRate = s.rate;
+      if (!v.paused && !v.ended && v.readyState >= 3 && a.paused && !a.ended) void a.play().catch(() => {});
+    }
   }, []);
 
   const close = useCallback(() => {
@@ -177,7 +197,7 @@ export function DemoPlayer() {
           last = tenth;
           setT(v.currentTime);
         }
-        if (now - checked > 400) {
+        if (now - checked > 250) {
           checked = now;
           sync();
         }
@@ -194,6 +214,16 @@ export function DemoPlayer() {
     if (music.current) music.current.muted = !musicOn;
     if (video.current) video.current.muted = separate || !(voiceOn || musicOn);
   }, [voiceOn, musicOn, separate, stage]);
+
+  // while the video is on screen the page behind it is not drawn and its animations rest, so even a modest
+  // computer decodes the video without stutter (headless tests stalled every few seconds before this)
+  const watching = open && !presenting && stage !== "card";
+  useEffect(() => {
+    if (!watching) return;
+    const root = document.documentElement;
+    root.classList.add("demo-watching");
+    return () => root.classList.remove("demo-watching");
+  }, [watching]);
 
   // controls hide while it plays and come back when the mouse moves
   const showBar = useCallback(() => {
@@ -288,8 +318,8 @@ export function DemoPlayer() {
           </div>
           {separate && (
             <>
-              <audio ref={voice} src={src(m.voice!)} preload="auto" />
-              <audio ref={music} src={src(m.music!)} preload="auto" />
+              <audio ref={voice} src={src(m.voice!)} preload="auto" onError={onTrackError} />
+              <audio ref={music} src={src(m.music!)} preload="auto" onError={onTrackError} />
             </>
           )}
           <p className="sr-only" aria-live="polite">

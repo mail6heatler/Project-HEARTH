@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { alignWords, buildCues, chapterAt, clock, cueAt, encodeWav, formatBytes, needsResync, parseManifest, toVtt, wavMs, wordAt, type DemoManifest } from "@/lib/presenter/demo";
+import { alignWords, buildCues, chapterAt, clock, cueAt, encodeWav, formatBytes, parseManifest, steer, toVtt, wavMs, wordAt, type DemoManifest } from "@/lib/presenter/demo";
 import { phrases } from "@/lib/presenter/motion";
 import { CHAPTERS } from "@/lib/presenter/script";
 
@@ -88,8 +88,13 @@ describe("recorded demo: player helpers", () => {
     expect([chapterAt(ch, 0), chapterAt(ch, 9), chapterAt(ch, 19.9), chapterAt(ch, 99)]).toEqual([0, 1, 1, 2]);
     expect([clock(0), clock(65.9), clock(92)]).toEqual(["0:00", "1:05", "1:32"]);
     expect([formatBytes(2048), formatBytes(19_293_798)]).toEqual(["2 KB", "18.4 MB"]);
-    expect(needsResync(10, 10.1)).toBe(false);
-    expect(needsResync(10, 10.3)).toBe(true);
+    // in step: leave it; a little behind: play a touch faster; a little ahead: slower; far off: jump
+    expect(steer(0.01)).toEqual({ jump: false, rate: 1 });
+    expect(steer(0.1)).toEqual({ jump: false, rate: 1.05 });
+    expect(steer(-0.1)).toEqual({ jump: false, rate: 0.95 });
+    expect(steer(0.25).rate).toBe(1.06);
+    expect(steer(0.5)).toEqual({ jump: true, rate: 1 });
+    expect(steer(-2).jump).toBe(true);
   });
 
   it("encodes WAV audio and reads its length back", () => {
