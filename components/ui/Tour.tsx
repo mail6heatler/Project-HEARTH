@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import { useHearth } from "@/lib/store";
 
 const KEY = "hearth.tour.v1";
 
@@ -20,8 +21,11 @@ interface Box {
 export function Tour() {
   const [step, setStep] = useState<number | null>(null);
   const [box, setBox] = useState<Box | null>(null);
+  // wait until the launch screen is gone, so the two never overlap
+  const landing = useHearth((s) => s.landing);
 
   useEffect(() => {
+    if (landing !== false) return;
     let seen = false;
     try {
       seen = window.localStorage.getItem(KEY) === "done";
@@ -32,7 +36,7 @@ export function Tour() {
       const t = setTimeout(() => setStep(0), 900);
       return () => clearTimeout(t);
     }
-  }, []);
+  }, [landing]);
 
   const finish = useCallback(() => {
     setStep(null);

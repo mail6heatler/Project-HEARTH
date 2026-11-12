@@ -94,6 +94,9 @@ interface HearthState {
   /** Panels rise into view while scrolling (decoration). */
   reveal: boolean;
   setReveal: (on: boolean) => void;
+  /** The "Launch Project HEARTH" screen: null until decided on load, then open (true) or closed (false). */
+  landing: boolean | null;
+  setLanding: (open: boolean) => void;
   /** Bumped when something outside the panel wants VESTA shown (e.g. "Ask VESTA about this"). */
   openRequest: number;
   requestOpen: () => void;
@@ -155,6 +158,8 @@ export const useHearth = create<HearthState>((set) => ({
   setTrail: (trail) => set({ trail }),
   reveal: true,
   setReveal: (reveal) => set({ reveal }),
+  landing: null,
+  setLanding: (landing) => set({ landing }),
   openRequest: 0,
   requestOpen: () => set((s) => ({ openRequest: s.openRequest + 1 })),
   achStats: EMPTY_STATS,

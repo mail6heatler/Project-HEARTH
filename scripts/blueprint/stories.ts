@@ -323,7 +323,8 @@ export const STORIES = {
   shell: {
     "components/layout/TopBar.tsx": { title: "Top bar & mission chips", story: same("The mission you pick here steers every page and VESTA at once. Shared state lives in one small store.") },
     "components/layout/SideNav.tsx": { title: "Side navigation", story: same("The list of pages. On small screens it moves to a sliding row at the top.") },
-    "components/layout/SiteFooter.tsx": { title: "Footer", story: same("Credits at the bottom of every page, plus the link that opens this Blueprint.") },
+    "components/layout/SiteFooter.tsx": { title: "Footer", story: same("Credits at the bottom of every page, plus the link that opens this Blueprint and a button that replays the launch screen.") },
+    "components/layout/LaunchScreen.tsx": { title: "Launch screen", story: same("The hyperspace landing that greets a first visit to the home page: press LAUNCH and the tunnel speeds up, flashes white and fades away to reveal the dashboard. Decoration only; Skip intro or Esc closes it.") },
     "components/vesta/VestaPanel.tsx": { title: "VESTA panel", story: same("The chat on every page, with the level picker and the Engine room: pick an engine, watch which one is answering, the tokens it burns and the FreeLLMAPI fuel tank. On a computer you can drag it, resize it, expand it, dock it left or right, or hide it into mini VESTA, whose face follows each answer's confidence tag. Poke her for a fact from the data. It moves below the page on small screens.") },
     "components/fx/Hyperspace.tsx": { title: "Hyperspace easter egg", story: same("Type /warp in the chat for two seconds of hyperspace. Decoration only, and skipped if you prefer reduced motion.") },
     "components/fx/EmberTrail.tsx": { title: "Ember trail", story: same("A few embers drift off your mouse pointer. Decoration only; off on touch screens, with reduced motion, or from the looks menu.") },
@@ -366,6 +367,7 @@ export const STORIES = {
     "lib/dataset-split.ts": same("Makes train/test splits and CSV exports."),
     "lib/dataset.ts": same("Computes every statistic on the Dataset page."),
     "lib/flame.ts": same("Turns real tests into flame simulator results."),
+    "lib/landing.ts": same("When the launch screen shows: the home page, once per browser tab, unless the link says otherwise."),
     "lib/glossary.ts": same("Plain-language meanings for words like pO2 and cool flame, each backed by a passage from the NASA documents."),
     "lib/map3d.ts": same("The scales and geometry for the 3D map."),
     "lib/missions.ts": same("The reference atmospheres: ISS, Moon base, rover, spacesuit."),

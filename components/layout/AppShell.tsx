@@ -11,6 +11,7 @@ import { VestaPanel } from "@/components/vesta/VestaPanel";
 import { postMissionAlert } from "@/components/vesta/useVesta";
 import { TestDrawer } from "@/components/ui/TestDrawer";
 import { Tour } from "@/components/ui/Tour";
+import { LaunchScreen } from "./LaunchScreen";
 import { SideNav } from "./SideNav";
 import { SiteFooter } from "./SiteFooter";
 import { TopBar } from "./TopBar";
@@ -86,6 +87,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
       <TestDrawer />
       <Hyperspace />
+      <LaunchScreen />
       <AskSelection />
       <AchievementToasts />
       <EmberTrail />

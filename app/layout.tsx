@@ -16,6 +16,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" className={`${head.variable} ${sans.variable} ${mono.variable}`}>
       <body className="antialiased">
+        {/* without JavaScript the launch button cannot work, so never cover the page */}
+        <noscript>
+          <style>{".launch-screen{display:none!important}"}</style>
+        </noscript>
         <AppShell>{children}</AppShell>
       </body>
     </html>

@@ -8,6 +8,17 @@
 
 ## Log
 
+### Launch screen (2026-11-13, the user picked option D "Hyperspace" from the landing canvas)
+**Done**
+- Full-screen hyperspace landing over the home page on a first visit (once per browser tab): spinning star tunnel, stars flying past, glitching "PROJECT HEARTH" title, breathing flame orb, "LAUNCH PROJECT HEARTH" and "by Team Polaris". LAUNCH speeds up the tunnel, flashes white and fades away to reveal the real dashboard.
+- Skip intro button and Esc; `?launch=1` forces it, `?skipintro` / `?present` skip it (the presentation will use that); "Replay launch screen" in the footer. The first-visit tour waits until it closes. Hidden without JavaScript; calm version under reduced motion; follows the accent skin.
+- `lib/landing.ts` rule with 3 tests.
+
+**Decisions**
+- An overlay inside the app rather than a separate page, so launching lands straight on the live dashboard and deep links (e.g. /explorer) are never blocked.
+- The home page is covered from the first paint (no flash of the dashboard); other pages are never covered unless asked.
+- The "Watch the tour" button from the mockup waits for the presentation feature.
+
 ### VESTA round 2: text effects and liveliness (2026-11-12, at the user's request: "all" 20 ideas)
 **Done**
 - Header: eyes follow the mouse and widen while typing; a hat per level (cap, goggles, hard hat); scrambling status text; rolling token odometer; scan line on mission change.
