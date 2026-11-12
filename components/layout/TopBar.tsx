@@ -24,7 +24,7 @@ export function TopBar() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-30 bg-bg">
+    <header className="shell-top sticky top-0 z-30 bg-bg">
       <div className="mx-auto flex max-w-[1800px] flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2 sm:px-6">
         <Link href="/" className="flex items-center gap-2" aria-label="HEARTH home">
           <Logo size={30} />
@@ -62,6 +62,7 @@ export function TopBar() {
         </nav>
         <button
           type="button"
+          data-present-hide
           onClick={() => setPresenterOpen(true)}
           className="ml-auto hidden items-center gap-1.5 rounded-full border border-ember/40 bg-ember/10 px-3 py-1 text-xs text-ember-soft transition hover:border-ember hover:bg-ember/20 vesta:flex"
         >

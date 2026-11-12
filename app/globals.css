@@ -1091,14 +1091,31 @@ body.vesta-dragging {
 @keyframes presentIn {
   from { opacity: 0; transform: translateY(14px) scale(0.97); }
 }
-/* the presenter cursor glides; its duration is set per move */
+.present-count { animation: countPop 0.8s cubic-bezier(0.2, 0.9, 0.3, 1) both; }
+@keyframes countPop {
+  0% { transform: scale(1.8); opacity: 0; }
+  25% { opacity: 1; }
+  100% { transform: scale(0.85); opacity: 0.2; }
+}
+
+/* cinema mode: no real pointer, no scrollbars, no decorative extras while presenting */
+html.presenting,
+html.presenting * { cursor: none !important; }
+html.presenting .present-dock,
+html.presenting .present-dock * { cursor: pointer !important; }
+html.presenting { scrollbar-width: none; }
+html.presenting::-webkit-scrollbar,
+html.presenting *::-webkit-scrollbar { display: none; }
+html.presenting .ask-selection,
+html.presenting [data-present-hide] { display: none !important; }
+html.presenting .vesta-stars { animation: none; }
+
+/* the presenter cursor (moved frame by frame from script along a curve) */
 .present-cursor {
-  transition-property: transform;
-  transition-timing-function: cubic-bezier(0.25, 0.9, 0.3, 1.05);
   filter: drop-shadow(0 0 10px rgb(var(--ember-rgb) / 0.85)) drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6));
   will-change: transform;
 }
-.present-arrow { transform-origin: 4px 2px; animation: cursorPress 0.32s ease-out; }
+.present-arrow { transform-origin: 4px 2px; animation: cursorPress 0.3s ease-out; }
 @keyframes cursorPress {
   0% { transform: scale(1); }
   40% { transform: scale(0.78); }
@@ -1111,24 +1128,67 @@ body.vesta-dragging {
   border-radius: 999px;
   border: 2px solid var(--ember);
   box-shadow: 0 0 14px rgb(var(--ember-rgb) / 0.8);
-  animation: clickRipple 0.85s ease-out both;
+  animation: clickRipple 0.85s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 @keyframes clickRipple {
   0% { transform: scale(0.4); opacity: 1; }
   100% { transform: scale(4.2); opacity: 0; }
 }
-/* spotlight: everything else dims, the highlighted part keeps a glowing outline */
+/* the element under the presenter cursor glows, and sinks a little when pressed */
+.present-hover {
+  outline: 2px solid rgb(var(--ember-rgb) / 0.8) !important;
+  outline-offset: 3px;
+  transition: outline-color 0.2s;
+}
+.present-press {
+  scale: 0.96;
+  filter: brightness(1.15);
+  transition: scale 0.12s ease-out, filter 0.12s;
+}
+
+/* spotlight: the rest of the page dims; the box locks onto its target and only animates between targets */
 .present-spot {
-  box-shadow: 0 0 0 9999px rgba(4, 6, 12, 0.55), 0 0 0 2px var(--ember), 0 0 26px rgb(var(--ember-rgb) / 0.6);
-  transition: left 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), top 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), width 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), height 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-  animation: spotIn 0.45s ease-out both, spotPulse 1.8s ease-in-out 0.45s infinite;
+  opacity: 0;
+  box-shadow: 0 0 0 9999px rgba(4, 6, 12, 0.52);
+  transition: opacity 0.4s ease-out;
+  will-change: transform, width, height;
 }
-@keyframes spotIn { from { opacity: 0; } }
-@keyframes spotPulse {
-  50% { box-shadow: 0 0 0 9999px rgba(4, 6, 12, 0.55), 0 0 0 2px rgb(var(--ember-soft-rgb)), 0 0 40px rgb(var(--ember-rgb) / 0.85); }
+.present-spot.is-on { opacity: 1; }
+.present-spot.is-morph {
+  transition: opacity 0.4s ease-out, transform 0.52s cubic-bezier(0.65, 0, 0.35, 1), width 0.52s cubic-bezier(0.65, 0, 0.35, 1), height 0.52s cubic-bezier(0.65, 0, 0.35, 1), border-radius 0.52s;
 }
+.present-spot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 2px rgb(var(--ember-rgb) / 0.9), 0 0 24px rgb(var(--ember-rgb) / 0.5), inset 0 0 18px rgb(var(--ember-rgb) / 0.18);
+  animation: spotGlow 2.2s ease-in-out infinite;
+}
+@keyframes spotGlow { 50% { opacity: 0.55; } }
+
+/* page changes happen behind a soft curtain with a sweep of light */
+.present-curtain {
+  opacity: 0;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 45%, rgba(16, 26, 53, 0.92), rgba(4, 6, 12, 0.97) 70%);
+  transition: opacity 0.28s ease-out;
+}
+.present-curtain.is-on { opacity: 1; }
+.present-sweep {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40%;
+  left: -40%;
+  background: linear-gradient(100deg, transparent, rgb(var(--ember-rgb) / 0.18), rgba(255, 226, 204, 0.25), rgb(var(--ember-rgb) / 0.18), transparent);
+}
+.present-curtain.is-on .present-sweep { animation: sweep 0.9s cubic-bezier(0.65, 0, 0.35, 1) both; }
+@keyframes sweep { to { left: 110%; } }
+
 /* chapter title: a lower third that slides in, then fades */
 .present-title {
+  max-width: 196px; /* stays inside the left menu column; long titles wrap */
   border-left: 3px solid var(--ember);
   padding: 6px 14px;
   background: linear-gradient(90deg, rgba(4, 6, 12, 0.88), rgba(4, 6, 12, 0));
@@ -1140,15 +1200,47 @@ body.vesta-dragging {
   80% { opacity: 1; }
   100% { opacity: 0; }
 }
-.present-subs { animation: presentIn 0.3s ease-out both; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45); }
-.present-subs span { transition: color 0.15s; }
-.present-bar { animation: presentIn 0.4s ease-out both; }
+/* subtitles: one short phrase at a time, fading in */
+.present-subs {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  animation: subIn 0.32s ease-out both;
+}
+.present-subs span { transition: color 0.18s; }
+@keyframes subIn { from { opacity: 0; transform: translateY(6px); } }
+/* the control bar hides while playing and comes back when the mouse moves */
+.present-dock {
+  opacity: 0;
+  transform: translateY(14px);
+  pointer-events: none;
+  transition: opacity 0.35s ease-out, transform 0.35s ease-out;
+}
+.present-dock.is-shown { opacity: 1; transform: none; pointer-events: auto; }
+/* cinema bars */
+/* cinema bars: the page is fitted between them, never hidden behind them */
+html.present-letterbox { --lb: 6.5vh; }
+html.present-letterbox body { padding-top: var(--lb); padding-bottom: var(--lb); }
+html.present-letterbox .shell-top { top: var(--lb); }
+@media (min-width: 1180px) {
+  html.present-letterbox .shell-side { top: calc(49px + var(--lb)); height: calc(100vh - 49px - 2 * var(--lb)); }
+}
+.present-bars {
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 83;
+  height: var(--lb, 6.5vh);
+  background: #000;
+  pointer-events: none;
+  animation: barsIn 0.7s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+.present-bars.top-0 { transform-origin: top; }
+.present-bars.bottom-0 { transform-origin: bottom; }
+@keyframes barsIn { from { transform: scaleY(0); } }
 .present-end { animation: endIn 0.9s ease-out both; }
 @keyframes endIn {
   from { opacity: 0; transform: scale(1.04); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .present-cursor { transition: none; }
-  .present-arrow, .present-ripple, .present-spot, .present-title, .present-subs, .present-bar, .present-end, .present-card { animation: none !important; }
-  .present-spot { transition: none; }
+  .present-arrow, .present-ripple, .present-spot::after, .present-title, .present-subs, .present-end, .present-card, .present-count, .present-bars, .present-curtain.is-on .present-sweep { animation: none !important; }
+  .present-spot, .present-spot.is-morph, .present-curtain, .present-dock, .present-press, .present-hover { transition: none; }
 }

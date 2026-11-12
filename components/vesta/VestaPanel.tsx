@@ -149,7 +149,7 @@ export function VestaPanel() {
   const floating = mode === "float" || mode === "expand";
   const draggable = win.isDesktop && mode !== "expand";
   const animClass = anim === "in" ? "vesta-warp-in" : anim === "out" ? "vesta-warp-out" : anim === "pop" ? "vesta-pop" : "";
-  const docked = `relative flex scroll-mt-28 flex-col border-t border-line bg-panel/70 vesta:sticky vesta:top-[49px] vesta:h-[calc(100vh-49px)] vesta:w-[400px] vesta:shrink-0 vesta:border-t-0 ${mode === "left" ? "vesta:border-r" : "vesta:border-l"}`;
+  const docked = `shell-side relative flex scroll-mt-28 flex-col border-t border-line bg-panel/70 vesta:sticky vesta:top-[49px] vesta:h-[calc(100vh-49px)] vesta:w-[400px] vesta:shrink-0 vesta:border-t-0 ${mode === "left" ? "vesta:border-r" : "vesta:border-l"}`;
   const panelClass =
     mode === "hidden"
       ? "hidden"
@@ -159,7 +159,7 @@ export function VestaPanel() {
   const panelStyle = {
     ...(floating && box ? { left: box.x, top: box.y, width: box.w, height: box.h } : { order: mode === "left" ? 1 : 3 }),
     // the Engine room's height budget, so the question box always stays on screen
-    "--room-max": floating && box ? `${Math.max(150, box.h - 470)}px` : "max(220px, calc(100vh - 520px))",
+    "--room-max": floating && box ? `${Math.max(150, box.h - 470)}px` : "max(220px, calc(100vh - 520px - 2 * var(--lb, 0px)))",
   } as unknown as React.CSSProperties;
   const resizeEdges: { edge: Edge; cls: string }[] = [
     { edge: "e", cls: "right-[-3px] top-3 bottom-4 w-2 cursor-ew-resize" },

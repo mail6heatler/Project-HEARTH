@@ -577,7 +577,9 @@ export class HabitatEngine {
 
     // when left alone, the view sways gently; touching it stops the sway
     const t = now / 1000;
-    const idle = !this.fly && !this.pointerDown && now - this.idleSince > 6000;
+    // no idle sway during the presentation (smoother frame rate for recordings)
+    const presenting = document.documentElement.classList.contains("presenting");
+    const idle = !presenting && !this.fly && !this.pointerDown && now - this.idleSince > 6000;
     this.controls.autoRotate = idle;
     this.controls.autoRotateSpeed = 0.28 * Math.cos(t * 0.1);
     this.controls.update();

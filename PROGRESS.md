@@ -8,6 +8,19 @@
 
 ## Log
 
+### Presentation polish (2026-11-13, at the user's request: smoother clicks, fix the highlight box, more features)
+**Done**
+- Highlight box rewritten: locks onto its target every frame (no lag during zoom or scroll), stays inside the screen, copies the target's corner radius, only animates when moving to a new target; dim fades; lighter on the GPU (only the outline pulses). Sharper targets (one card, one answer, the drawer panel).
+- Cursor on a curved, eased path drawn frame by frame; hover glow, press, sink, ripple and tick before each click; human typing rhythm.
+- Page changes behind a curtain with a light sweep, revealed only once the page has settled; camera zoom with an in-out curve and slow drift, never on the VESTA panel; `cue` actions sync clicks to narration words; subtitles in short phrases.
+- Extras: cinema mode, cinema bars, fade from black, 3-2-1 countdown before recording, 720p/1080p at 60 fps, Web Audio sound effects and ambient pad (ducks under the voice), auto-hiding control bar, backdrop and 3D map idle frozen while presenting.
+- `lib/presenter/motion.ts` with 4 new tests (216).
+- Checked in headless Chrome (1440×900, cinema bars on, voice off): all 12 chapters, about 89 s, highlight box within 1 px of its target in every sampled frame (it had been off by up to 807 px because it lagged a React render behind, and an old target could stay marked), never off screen, nothing the presenter uses under a cinema bar, no console errors.
+- Cinema bars no longer cover the page: the top bar, side menu and VESTA panel are fitted between them (`html.present-letterbox`, `--lb`), the spotlight stays inside the picture, and the Engine room height budget subtracts the bars. Long chapter titles wrap inside the menu column. The camera pulls back before VESTA questions are typed; the cursor fades out on the end card.
+
+**Decisions**
+- Still no animation library (GSAP not approved); motion is requestAnimationFrame + Web Animations.
+
 ### "See HEARTH in action" presentation (2026-11-13, at the user's request)
 **Done**
 - Automated presentation over the real site, about 90 s, Team Polaris narrating with the browser's built-in voice and subtitles. 12 chapters: launch screen, Mission overview, Ask VESTA, VESTA lights up the map, Test explorer (VESTA opens a test), Compare (`/compare`), Safety & gaps (`/audit`), My data lab, Dataset, Flame simulator (Ignite), About + Engine room, end card.

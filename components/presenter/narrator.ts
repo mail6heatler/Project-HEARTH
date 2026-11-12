@@ -10,6 +10,8 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 export class Narrator {
   voiceOn: boolean;
   paused = false;
+  /** Told when the voice starts and stops (the music steps back while it speaks). */
+  onSpeaking: ((on: boolean) => void) | null = null;
   private voice: SpeechSynthesisVoice | null = null;
 
   constructor(voiceOn: boolean) {
@@ -81,6 +83,7 @@ export class Narrator {
       const finish = (ok: boolean) => {
         if (settled) return;
         settled = true;
+        this.onSpeaking?.(false);
         clearTimeout(guard);
         signal.removeEventListener("abort", onAbort);
         resolve(ok);
@@ -89,6 +92,7 @@ export class Narrator {
         synth.cancel();
         finish(true);
       };
+      u.onstart = () => this.onSpeaking?.(true);
       u.onboundary = (e) => {
         if (e.name === "word" || e.name === undefined) onWord(wordIndexAt(text, e.charIndex));
       };

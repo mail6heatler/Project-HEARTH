@@ -1,7 +1,8 @@
 /**
  * The "See HEARTH in action" presentation: chapters of narration plus on-screen actions on the real site.
  * Narration holds no hand-typed numbers: `{tests}` is filled from the data when it plays (tested).
- * Every left-menu page is covered (tested against the side menu).
+ * Every left-menu page is covered (tested against the side menu). `cue` holds an action until the narrator
+ * reaches that word, so clicks land on what is being said.
  */
 
 /** A thing on screen: a CSS selector, or the first element (of `tag`, inside `within`) whose text matches. */
@@ -23,6 +24,7 @@ export type Action =
   | { do: "unzoom" }
   | { do: "scroll"; to: Target }
   | { do: "key"; key: string }
+  | { do: "cue"; word: string }
   | { do: "wait"; ms: number }
   | { do: "end" };
 
@@ -51,12 +53,14 @@ export const CHAPTERS: Chapter[] = [
     nav: "/",
     say: "On Mission overview, pick a habitat and see its air at a glance. Every page, and our crewmate VESTA, follow it.",
     actions: [
-      { do: "spot", on: "#tour-missions", pad: 8 },
+      { do: "spot", on: "#tour-missions", pad: 6 },
+      { do: "cue", word: "pick" },
       { do: "click", on: { text: "Lunar rover", tag: "button", within: "#tour-missions" } },
-      { do: "wait", ms: 500 },
-      { do: "spot", on: FIRST_PANEL },
-      { do: "zoom", on: FIRST_PANEL, scale: 1.18 },
-      { do: "wait", ms: 1600 },
+      { do: "cue", word: "glance" },
+      { do: "spot", on: FIRST_PANEL, pad: 6 },
+      { do: "zoom", on: FIRST_PANEL, scale: 1.1 },
+      { do: "cue", word: "follow" },
+      { do: "wait", ms: 900 },
       { do: "unzoom" },
     ],
   },
@@ -65,13 +69,11 @@ export const CHAPTERS: Chapter[] = [
     title: "Ask VESTA",
     say: "Ask VESTA in plain words. She checks the NASA data with her tools, cites every source, and tags how sure she is.",
     actions: [
-      { do: "spot", on: "#vesta-panel", pad: 0 },
+      { do: "spot", on: "#vesta-input", pad: 8 },
       { do: "ask", text: "Is my rover cabin inside the tested data?" },
       { do: "waitVesta" },
-      { do: "spot", on: LAST_ANSWER, pad: 6 },
-      { do: "zoom", on: LAST_ANSWER, scale: 1.25 },
-      { do: "wait", ms: 1800 },
-      { do: "unzoom" },
+      { do: "spot", on: LAST_ANSWER, pad: 4 },
+      { do: "wait", ms: 1500 },
     ],
   },
   {
@@ -80,9 +82,8 @@ export const CHAPTERS: Chapter[] = [
     say: "Her answers light up the matching tests on the habitat map.",
     actions: [
       { do: "scroll", to: "#tour-map" },
-      { do: "hover", on: '#vesta-panel button[title*="lights it up"]', ms: 2600 },
       { do: "spot", on: "#tour-map", pad: 4 },
-      { do: "wait", ms: 1600 },
+      { do: "hover", on: '#vesta-panel button[title*="lights it up"]', ms: 2400 },
     ],
   },
   {
@@ -92,11 +93,12 @@ export const CHAPTERS: Chapter[] = [
     say: "Test explorer filters every run, and VESTA can open any test for you.",
     actions: [
       { do: "nav", path: "/explorer" },
-      { do: "spot", on: FIRST_PANEL },
+      { do: "spot", on: FIRST_PANEL, pad: 6 },
+      { do: "cue", word: "VESTA" },
       { do: "ask", text: "Explain test ACME-CFIG-128" },
       { do: "waitVesta" },
-      { do: "spot", on: '[role="dialog"][aria-label^="Test "]', pad: 0 },
-      { do: "wait", ms: 1600 },
+      { do: "spot", on: '[role="dialog"][aria-label^="Test "] > div', pad: 0 },
+      { do: "wait", ms: 1500 },
       { do: "key", key: "Escape" },
     ],
   },
@@ -109,9 +111,9 @@ export const CHAPTERS: Chapter[] = [
       { do: "ask", text: "/compare" },
       { do: "waitPath", path: "/compare" },
       { do: "waitVesta" },
-      { do: "spot", on: FIRST_PANEL },
-      { do: "zoom", on: FIRST_PANEL, scale: 1.15 },
-      { do: "wait", ms: 1800 },
+      { do: "spot", on: FIRST_PANEL, pad: 6 },
+      { do: "zoom", on: FIRST_PANEL, scale: 1.08 },
+      { do: "wait", ms: 1400 },
       { do: "unzoom" },
     ],
   },
@@ -124,9 +126,10 @@ export const CHAPTERS: Chapter[] = [
       { do: "ask", text: "/audit" },
       { do: "waitPath", path: "/safety" },
       { do: "waitVesta" },
-      { do: "spot", on: FIRST_PANEL },
-      { do: "zoom", on: FIRST_PANEL, scale: 1.12 },
-      { do: "wait", ms: 1800 },
+      { do: "spot", on: FIRST_PANEL, pad: 6 },
+      { do: "zoom", on: FIRST_PANEL, scale: 1.1 },
+      { do: "cue", word: "never" },
+      { do: "wait", ms: 900 },
       { do: "unzoom" },
     ],
   },
@@ -137,9 +140,9 @@ export const CHAPTERS: Chapter[] = [
     say: "My data lab checks your own conditions against NASA's, right in your browser.",
     actions: [
       { do: "nav", path: "/lab" },
-      { do: "spot", on: FIRST_PANEL },
-      { do: "zoom", on: FIRST_PANEL, scale: 1.12 },
-      { do: "wait", ms: 1800 },
+      { do: "spot", on: FIRST_PANEL, pad: 6 },
+      { do: "zoom", on: FIRST_PANEL, scale: 1.08 },
+      { do: "wait", ms: 1600 },
       { do: "unzoom" },
     ],
   },
@@ -150,11 +153,11 @@ export const CHAPTERS: Chapter[] = [
     say: "Dataset explains every field and lets you download the clean data.",
     actions: [
       { do: "nav", path: "/dataset" },
-      { do: "spot", on: FIRST_PANEL },
-      { do: "wait", ms: 1500 },
+      { do: "spot", on: FIRST_PANEL, pad: 6 },
+      { do: "cue", word: "download" },
       { do: "scroll", to: "#download" },
       { do: "spot", on: "#download", pad: 6 },
-      { do: "wait", ms: 1400 },
+      { do: "wait", ms: 1200 },
     ],
   },
   {
@@ -164,10 +167,11 @@ export const CHAPTERS: Chapter[] = [
     say: "The flame simulator replays real tests, in microgravity and on Earth.",
     actions: [
       { do: "nav", path: "/simulator" },
+      { do: "cue", word: "replays" },
       { do: "click", on: { text: "Ignite", tag: "button", within: "#main" } },
-      { do: "spot", on: FIRST_PANEL },
-      { do: "zoom", on: FIRST_PANEL, scale: 1.12 },
-      { do: "wait", ms: 1600 },
+      { do: "spot", on: FIRST_PANEL, pad: 6 },
+      { do: "zoom", on: FIRST_PANEL, scale: 1.08 },
+      { do: "wait", ms: 1500 },
       { do: "unzoom" },
     ],
   },
@@ -178,11 +182,11 @@ export const CHAPTERS: Chapter[] = [
     say: "About tells our story. And if an AI service fails, VESTA switches engines, down to an offline mode that never fails.",
     actions: [
       { do: "nav", path: "/about" },
-      { do: "spot", on: FIRST_PANEL },
-      { do: "wait", ms: 1100 },
+      { do: "spot", on: FIRST_PANEL, pad: 6 },
+      { do: "cue", word: "if" },
       { do: "click", on: 'button[aria-controls="engine-room"]' },
       { do: "spot", on: "#engine-room", pad: 4 },
-      { do: "wait", ms: 2000 },
+      { do: "wait", ms: 1900 },
       { do: "click", on: 'button[aria-controls="engine-room"]' },
     ],
   },

@@ -261,6 +261,8 @@ export function SpaceBackdrop() {
 
     const loop = (now: number) => {
       raf = requestAnimationFrame(loop);
+      // hold still during the presentation so the page (and a recording) stays smooth
+      if (useHearth.getState().presenting) return;
       if (now - last < frameMs) return;
       last = now;
       draw(now);

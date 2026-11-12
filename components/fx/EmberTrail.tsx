@@ -19,7 +19,8 @@ interface Spark {
  * Off on touch screens, under reduced motion, and when switched off in the looks menu.
  */
 export function EmberTrail() {
-  const on = useHearth((s) => s.trail);
+  // off during the presentation too: its cursor is not the real mouse, and the video should stay clean
+  const on = useHearth((s) => s.trail && !s.presenting);
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {

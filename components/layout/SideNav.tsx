@@ -19,7 +19,7 @@ export function SideNav() {
   const path = usePathname();
   return (
     <nav aria-label="Main" className="border-b border-line vesta:w-56 vesta:shrink-0 vesta:border-b-0 vesta:border-r">
-      <div className="vesta:sticky vesta:top-[49px] vesta:flex vesta:h-[calc(100vh-49px)] vesta:flex-col">
+      <div className="shell-side vesta:sticky vesta:top-[49px] vesta:flex vesta:h-[calc(100vh-49px)] vesta:flex-col">
         <ul className="flex gap-1 overflow-x-auto px-3 py-2 vesta:flex-col vesta:px-3 vesta:py-4">
           {NAV.map(({ href, label, Icon }) => {
             const active = href === "/" ? path === "/" : path.startsWith(href);
