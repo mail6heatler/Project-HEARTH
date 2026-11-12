@@ -5,6 +5,7 @@ import { IconCheck, IconCopy, IconPin } from "@/components/ui/Icons";
 import { useHearth, type Step, type VestaMessage } from "@/lib/store";
 import { formatTokens } from "@/lib/vesta/burn";
 import { ConfidenceTag, SourceChips } from "./Bits";
+import { ConfidenceFx, OrbitLoader } from "./Fx";
 import { RichText } from "./RichText";
 import { toolLabel } from "./suggest";
 
@@ -64,11 +65,7 @@ function Working({ steps }: { steps: Step[] }) {
   const running = [...steps].reverse().find((s) => s.status === "running" && s.tool !== "engine");
   return (
     <p className="flex items-center gap-2 text-muted">
-      <span className="flex gap-1" aria-hidden>
-        {[0, 1, 2].map((i) => (
-          <span key={i} className="h-1.5 w-1.5 animate-pulse rounded-full bg-ember" style={{ animationDelay: `${i * 180}ms` }} />
-        ))}
-      </span>
+      <OrbitLoader />
       {running ? `${toolLabel(running.tool)}…` : "Thinking…"}
     </p>
   );
@@ -115,7 +112,7 @@ export function VestaMessageView({ m }: { m: VestaMessage }) {
 
   if (m.role === "user") {
     return (
-      <li className="ml-8 max-w-full shrink-0 animate-fadeUp self-end whitespace-pre-wrap break-words rounded-xl rounded-br-sm border border-ember/30 bg-gradient-to-br from-ember/20 to-ember/5 px-3 py-2 text-sm">
+      <li className="vesta-rocket relative ml-8 max-w-full shrink-0 self-end whitespace-pre-wrap break-words rounded-xl rounded-br-sm border border-ember/30 bg-gradient-to-br from-ember/20 to-ember/5 px-3 py-2 text-sm">
         <span className="sr-only">You: </span>
         {m.text}
       </li>
@@ -160,7 +157,13 @@ export function VestaMessageView({ m }: { m: VestaMessage }) {
         <div className="mt-2 space-y-1.5 border-t border-line pt-2">
           <Sources m={m} onOpen={openTest} />
           <div className="flex flex-wrap items-center justify-between gap-1">
-            {m.confidence ? <ConfidenceTag value={m.confidence} note={m.confidenceNote} /> : <span />}
+            {m.confidence ? (
+              <ConfidenceFx value={m.confidence}>
+                <ConfidenceTag value={m.confidence} note={m.confidenceNote} />
+              </ConfidenceFx>
+            ) : (
+              <span />
+            )}
             {m.text && !m.pending && <CopyButton text={m.text} />}
           </div>
         </div>

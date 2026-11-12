@@ -99,6 +99,12 @@ Tool schemas are written once in zod and converted for each provider. SSE events
 - A strip under the level picker shows the picked engine, the engine answering right now, tokens burned this session and the FreeLLMAPI budget left; clicking it opens the Engine room (`components/vesta/EngineRoom.tsx`).
 - Engine tiles: Auto (recommended) · Claude · ChatGPT · FreeLLMAPI · OpenRouter · Groq · Gemini · Offline. Engines without a key are greyed out with "no key" and cannot be picked; engines resting after a failure show a countdown. The fallback chain lights up while VESTA works.
 - Cards: Now running (engine, model, model FreeLLMAPI routed to, calls, tokens, time), Token burn (session total, per engine, average per answer; counts come only from provider `usage` reports, `lib/vesta/burn.ts`), FreeLLMAPI fuel tank (its own budget estimate, per-model bar, provider health).
+
+## VESTA window and effects (desktop; phones keep the panel below the page)
+- Same layout, new moves (`components/vesta/useVestaWindow.ts`, pure geometry in `windowGeometry.ts`): drag the header to float it, resize from the edges and corner, drop near the left or right screen edge to dock there, double-click the header to dock right, Expand (Esc to shrink), Pop out / Dock, Hide into mini VESTA (bottom right; a badge counts mission warnings that arrived while hidden). The state is remembered in localStorage.
+- VESTA's face (`VestaFace.tsx`) over the orb follows `lib/vesta/mood.ts`: thinking while tools run, happy for `supported`, worried for `extrapolated` / `no_data` / errors, alert for a mission warning; relaxes to idle after a while. Decoration only: the confidence tag stays the source of truth.
+- Poke the orb for a space fire fact: `/api/vesta/facts` builds them from real tool results (`lib/vesta/facts.ts`), each with its source. Never hand-type a fact.
+- Effects (`Fx.tsx`, CSS in `app/globals.css`): rocket send, orbiting-planets loader, star burst on `supported`, red pulse on `no_data`, starfield behind the chat, `/warp` hyperspace easter egg (`components/fx/Hyperspace.tsx`). Skins Ember / Nebula / Mars / Moon swap only the accent (`--ember-rgb`), never data or safety colours. All of it stops under prefers-reduced-motion.
 - The choice is saved in the zustand store and in localStorage, and sent with every message.
 - If the picked engine fails, VESTA falls back down the chain and shows a small note in that message, e.g. "Groq limit reached, answered with Gemini".
 - Every VESTA message shows a small badge with the engine that answered (e.g. "via Groq · gpt-oss-120b", "Offline mode"), the model FreeLLMAPI routed to, and the tokens the answer burned.
@@ -108,7 +114,7 @@ Calm, precise, a little dry humour. Speaks first when it sees a hazard. Three ex
 
 ## Look and feel
 - Dark "mission control". Background #070B14, panel #0D1322, raised #131B2E, lines #1F2A44, text #E8ECF6, muted #97A3BC.
-- Accent ember #FF7A2F (soft #FFB98A). ACME #4CC9F0, CFI #A78BFA, SPICE #5EE6A8. Status: ok #5EE6A8, warn #FFC857, bad #FF5D6C.
+- Accent ember #FF7A2F (soft #FFB98A); in code use the `ember` Tailwind colour or `var(--ember)` / `rgb(var(--ember-rgb) / a)`, never the hex, so VESTA's skins can swap it. ACME #4CC9F0, CFI #A78BFA, SPICE #5EE6A8. Status: ok #5EE6A8, warn #FFC857, bad #FF5D6C.
 - Fonts via next/font/google: Chakra Petch (headings), IBM Plex Sans (text), IBM Plex Mono (numbers).
 - Layout: sticky top bar (logo, mission chips, status) · left nav · main view · VESTA panel on the right (moves below on small screens). Must work at 400px wide.
 - Lively but tasteful: chart entry animations, pulsing mission marker, streaming chat, animated VESTA orb. Respect prefers-reduced-motion. Real buttons and labels, visible focus.

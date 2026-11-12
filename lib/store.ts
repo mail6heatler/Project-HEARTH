@@ -7,6 +7,10 @@ import type { ChartPayload } from "./vesta/tools/make_chart";
 
 export type Level = "student" | "researcher" | "engineer";
 
+/** Accent skins for the whole site. Only the ember accent changes; data and safety colours never do. */
+export type Skin = "ember" | "nebula" | "mars" | "moon";
+export const SKINS: Record<Skin, string> = { ember: "Ember", nebula: "Nebula", mars: "Mars", moon: "Moon" };
+
 export interface Step {
   tool: string;
   status: "running" | "done" | "error";
@@ -75,6 +79,14 @@ interface HearthState {
   burnPulse: number;
   roomOpen: boolean;
   setRoomOpen: (open: boolean) => void;
+  skin: Skin;
+  setSkin: (s: Skin) => void;
+  /** Slow stars behind the chat (decoration). */
+  starfield: boolean;
+  setStarfield: (on: boolean) => void;
+  /** Time of the last /warp easter egg, 0 = never. */
+  warpAt: number;
+  warp: () => void;
   startLive: () => void;
   updateLive: (fn: (l: LiveRun) => LiveRun) => void;
   endLive: (answerTokens: number | null) => void;
@@ -111,6 +123,12 @@ export const useHearth = create<HearthState>((set) => ({
   burnPulse: 0,
   roomOpen: false,
   setRoomOpen: (roomOpen) => set({ roomOpen }),
+  skin: "ember",
+  setSkin: (skin) => set({ skin }),
+  starfield: true,
+  setStarfield: (starfield) => set({ starfield }),
+  warpAt: 0,
+  warp: () => set({ warpAt: Date.now() }),
   startLive: () => set({ live: { startedAt: Date.now(), calls: 0, tokens: 0, fallbacks: [] } }),
   updateLive: (fn) => set((s) => (s.live ? { live: fn(s.live) } : s)),
   endLive: (answerTokens) => set((s) => ({ live: null, burn: answerTokens ? addAnswer(s.burn, answerTokens) : s.burn })),
@@ -134,7 +152,9 @@ export const useHearth = create<HearthState>((set) => ({
 // ---- small per-viewer preferences in localStorage (always wrapped: storage may be blocked)
 const PREFS_KEY = "hearth.prefs.v1";
 
-export function loadPrefs(): Partial<Pick<HearthState, "engine" | "level" | "missionId">> {
+type Prefs = Pick<HearthState, "engine" | "level" | "missionId" | "skin" | "starfield">;
+
+export function loadPrefs(): Partial<Prefs> {
   try {
     const raw = window.localStorage.getItem(PREFS_KEY);
     return raw ? JSON.parse(raw) : {};
@@ -143,7 +163,7 @@ export function loadPrefs(): Partial<Pick<HearthState, "engine" | "level" | "mis
   }
 }
 
-export function savePrefs(p: Pick<HearthState, "engine" | "level" | "missionId">) {
+export function savePrefs(p: Prefs) {
   try {
     window.localStorage.setItem(PREFS_KEY, JSON.stringify(p));
   } catch {

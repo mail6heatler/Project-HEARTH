@@ -8,6 +8,22 @@
 
 ## Log
 
+### VESTA window, mini VESTA and space effects (2026-11-12, at the user's request)
+**Done**
+- Kept the panel layout and added, on desktop: drag by the header (a click stays a click), resize from the edges and corner, snap-dock left or right with a glowing drop zone, double-click to dock right, Expand with backdrop (Esc to shrink), Pop out / Dock, Hide into mini VESTA with a warp animation and a badge for mission warnings that arrive while hidden. Remembered in localStorage.
+- VESTA's face over the orb: idle blink, thinking (orbiting sparks), happy (supported), worried (little or no data), alert (mission warning); relaxes after 12 s. Poke the orb for a space fire fact from `/api/vesta/facts` (6 facts built from tool results, each with a source).
+- Effects: rocket send, orbiting-planets loader, star burst / red pulse on the confidence tag, starfield behind the chat, skins (Ember, Nebula, Mars, Moon: accent only), `/warp` hyperspace. All decoration, all off under reduced motion. No new dependencies.
+- The ember accent is now a CSS variable (`--ember-rgb`, Tailwind `rgb(var(--ember-rgb) / <alpha-value>)`), and the stylesheet's hard-coded orange uses it, so skins recolour the whole site.
+- 9 new tests (194 in total). Checked in headless Chrome at 1440×900, 1280×720 and 400 px: drag, resize, snap-dock, double-click, expand + Esc, hide + warning badge + warp back, facts, Offline answer (rocket, star burst, happy face), orbit loader, skins, /warp, reload memory, reduced motion; no console errors, no sideways overflow on phones.
+
+**Decisions**
+- Desktop only (≥ 1180 px) as asked; phones keep the panel below the page and only get the looks menu.
+- Dock left places VESTA between the side menu and the page, not over the menu.
+- Moods mirror the confidence tag and alerts; they never replace the tag. Facts are computed, never typed.
+
+**Problems**
+- `next build` failed once more in the Google Fonts loader (same flake as before); the retry passed.
+
 ### FreeLLMAPI + ChatGPT engines and the Engine room (2026-11-12, at the user's request)
 **Done**
 - New engines: ChatGPT (`OPENAI_API_KEY`, `openai` SDK, default `gpt-5-mini`; no key yet, slot ready) and FreeLLMAPI (`FREELLMAPI_API_KEY`, local desktop app at `http://127.0.0.1:31415/v1`, model `auto`). Chain: Claude → ChatGPT → FreeLLMAPI → OpenRouter → Groq → Gemini → Offline. No new dependencies.

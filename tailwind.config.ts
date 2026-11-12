@@ -14,7 +14,8 @@ const config: Config = {
         line: "#1f2a44",
         text: "#e8ecf6",
         muted: "#97a3bc",
-        ember: { DEFAULT: "#ff7a2f", soft: "#ffb98a" },
+        // the accent VESTA's skins swap: "R G B" channels from CSS variables, so opacity modifiers like bg-ember/10 still work
+        ember: { DEFAULT: "rgb(var(--ember-rgb) / <alpha-value>)", soft: "rgb(var(--ember-soft-rgb) / <alpha-value>)" },
         acme: "#4cc9f0",
         cfi: "#a78bfa",
         spice: "#5ee6a8",

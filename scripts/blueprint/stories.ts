@@ -324,7 +324,8 @@ export const STORIES = {
     "components/layout/TopBar.tsx": { title: "Top bar & mission chips", story: same("The mission you pick here steers every page and VESTA at once. Shared state lives in one small store.") },
     "components/layout/SideNav.tsx": { title: "Side navigation", story: same("The list of pages. On small screens it moves to a sliding row at the top.") },
     "components/layout/SiteFooter.tsx": { title: "Footer", story: same("Credits at the bottom of every page, plus the link that opens this Blueprint.") },
-    "components/vesta/VestaPanel.tsx": { title: "VESTA panel", story: same("The chat on every page, with the level picker and the Engine room: pick an engine, watch which one is answering, the tokens it burns and the FreeLLMAPI fuel tank. It moves below the page on small screens.") },
+    "components/vesta/VestaPanel.tsx": { title: "VESTA panel", story: same("The chat on every page, with the level picker and the Engine room: pick an engine, watch which one is answering, the tokens it burns and the FreeLLMAPI fuel tank. On a computer you can drag it, resize it, expand it, dock it left or right, or hide it into mini VESTA, whose face follows each answer's confidence tag. Poke her for a fact from the data. It moves below the page on small screens.") },
+    "components/fx/Hyperspace.tsx": { title: "Hyperspace easter egg", story: same("Type /warp in the chat for two seconds of hyperspace. Decoration only, and skipped if you prefer reduced motion.") },
     "components/ui/TestDrawer.tsx": { title: "Test details drawer", story: same("Opens one test with its derived values, source row and related PDF passages. VESTA can open it too.") },
     "components/ui/Tour.tsx": { title: "First-visit tour", story: same("A short guided tour for newcomers. Skip it once and it stays away.") },
     "components/fx/SpaceBackdrop.tsx": { title: "Space backdrop", story: same("Decoration only. It never carries data, and it calms down if you prefer reduced motion.") },
@@ -346,6 +347,7 @@ export const STORIES = {
     "/api/vesta": same("The chat itself. Checks the request, then streams VESTA's answer as live events."),
     "/api/vesta/alert": same("VESTA's proactive mission warning. Uses tested formulas only, no AI."),
     "/api/vesta/engines": same("Tells the Engine room which engines are available. Only yes or no, never a key."),
+    "/api/vesta/facts": same("Mini VESTA's space fire facts, built from real tool results over the NASA data, each with its source."),
     "/api/vesta/meter": same("Engine room readings: which engines are resting after a failure, and the local FreeLLMAPI app's health and monthly token budget. Never a key or a session token."),
   } as Record<string, Story>,
 
@@ -365,7 +367,7 @@ export const STORIES = {
     "lib/ratelimit.ts": same("Limits requests per visitor and remembers finished calculations."),
     "lib/safety.ts": same("The rules behind prevention, detection and suppression findings."),
     "lib/search.ts": same("Full-text search over the PDF passages."),
-    "lib/store.ts": same("The browser's shared memory: mission, engine, messages, level, and the tokens burned this session."),
+    "lib/store.ts": same("The browser's shared memory: mission, engine, messages, level, the tokens burned this session, and the look (skin, starfield)."),
     "lib/vesta": same("VESTA's router, agent, tools, grounding check and Offline mode."),
   } as Record<string, Story>,
 

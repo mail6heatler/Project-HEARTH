@@ -206,7 +206,7 @@ export function EngineRoom() {
       </button>
 
       {open && (
-        <div id="engine-room" className="engine-room mt-2 max-h-[min(62vh,620px)] space-y-2 overflow-y-auto overscroll-contain pr-0.5 vesta:max-h-[max(220px,calc(100vh-520px))]">
+        <div id="engine-room" className="engine-room mt-2 max-h-[min(62vh,620px)] space-y-2 overflow-y-auto overscroll-contain pr-0.5 vesta:max-h-[var(--room-max)]">
           <fieldset className="rounded-lg border border-line bg-bg/40 p-2">
             <legend className="px-1 font-mono text-[10px] uppercase tracking-wider text-muted">Pick an engine</legend>
             <div className="grid grid-cols-2 gap-1.5">

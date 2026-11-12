@@ -67,3 +67,24 @@ export const IconChevron = (p: P) => (
 export const IconBolt = (p: P) => (
   <svg {...base} className={p.className}><path d="M13 3L5 14h6l-1 7 8-11h-6z" /></svg>
 );
+export const IconSparkle = (p: P) => (
+  <svg {...base} className={p.className}><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" /><path d="M19 15l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z" /></svg>
+);
+export const IconExpand = (p: P) => (
+  <svg {...base} className={p.className}><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" /></svg>
+);
+export const IconShrink = (p: P) => (
+  <svg {...base} className={p.className}><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7" /></svg>
+);
+export const IconPopOut = (p: P) => (
+  <svg {...base} className={p.className}><rect x="3" y="7" width="13" height="13" rx="2" /><path d="M10 3h11v11" /></svg>
+);
+export const IconDock = (p: P) => (
+  <svg {...base} className={p.className}><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M14 4v16" /></svg>
+);
+export const IconHideMini = (p: P) => (
+  <svg {...base} className={p.className}><circle cx="17.5" cy="17.5" r="3" /><path d="M4 4l9 9M13 7v6H7" /></svg>
+);
+export const IconGrip = (p: P) => (
+  <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor" aria-hidden className={p.className}><circle cx="2.5" cy="2.5" r="1.4" /><circle cx="7.5" cy="2.5" r="1.4" /><circle cx="2.5" cy="8" r="1.4" /><circle cx="7.5" cy="8" r="1.4" /><circle cx="2.5" cy="13.5" r="1.4" /><circle cx="7.5" cy="13.5" r="1.4" /></svg>
+);
