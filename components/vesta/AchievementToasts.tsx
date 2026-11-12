@@ -35,7 +35,8 @@ function Toast({ id, title, hint }: { id: string; title: string; hint: string })
 /** Little "achievement unlocked" cards for exploring HEARTH. Local only. */
 export function AchievementToasts() {
   const toasts = useHearth((s) => s.toasts);
-  if (!toasts.length) return null;
+  const presenting = useHearth((s) => s.presenting);
+  if (!toasts.length || presenting) return null;
   return (
     <div className="pointer-events-none fixed left-1/2 top-[60px] z-[50] flex w-[min(340px,calc(100vw-32px))] -translate-x-1/2 flex-col gap-2">
       {toasts.map((t) => (

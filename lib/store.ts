@@ -97,6 +97,13 @@ interface HearthState {
   /** The "Launch Project HEARTH" screen: null until decided on load, then open (true) or closed (false). */
   landing: boolean | null;
   setLanding: (open: boolean) => void;
+  /** The "See HEARTH in action" start card is open. */
+  presenterOpen: boolean;
+  setPresenterOpen: (open: boolean) => void;
+  /** A presentation is playing: tours, toasts and achievements stay quiet. */
+  presenting: boolean;
+  setPresenting: (on: boolean) => void;
+  setMessages: (messages: VestaMessage[]) => void;
   /** Bumped when something outside the panel wants VESTA shown (e.g. "Ask VESTA about this"). */
   openRequest: number;
   requestOpen: () => void;
@@ -160,6 +167,11 @@ export const useHearth = create<HearthState>((set) => ({
   setReveal: (reveal) => set({ reveal }),
   landing: null,
   setLanding: (landing) => set({ landing }),
+  presenterOpen: false,
+  setPresenterOpen: (presenterOpen) => set({ presenterOpen }),
+  presenting: false,
+  setPresenting: (presenting) => set({ presenting }),
+  setMessages: (messages) => set({ messages }),
   openRequest: 0,
   requestOpen: () => set((s) => ({ openRequest: s.openRequest + 1 })),
   achStats: EMPTY_STATS,
@@ -167,6 +179,8 @@ export const useHearth = create<HearthState>((set) => ({
   toasts: [],
   track: (e) =>
     set((s) => {
+      // the presentation is a demo, not the visitor's own exploring
+      if (s.presenting) return s;
       const achStats = bump(s.achStats, e);
       const fresh = newlyUnlocked(achStats, s.unlocked);
       if (!fresh.length) return { achStats };

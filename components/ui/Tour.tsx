@@ -23,9 +23,10 @@ export function Tour() {
   const [box, setBox] = useState<Box | null>(null);
   // wait until the launch screen is gone, so the two never overlap
   const landing = useHearth((s) => s.landing);
+  const presenting = useHearth((s) => s.presenting);
 
   useEffect(() => {
-    if (landing !== false) return;
+    if (landing !== false || presenting) return;
     let seen = false;
     try {
       seen = window.localStorage.getItem(KEY) === "done";
@@ -36,7 +37,7 @@ export function Tour() {
       const t = setTimeout(() => setStep(0), 900);
       return () => clearTimeout(t);
     }
-  }, [landing]);
+  }, [landing, presenting]);
 
   const finish = useCallback(() => {
     setStep(null);

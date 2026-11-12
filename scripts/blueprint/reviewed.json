@@ -1,6 +1,6 @@
 {
   "app/api/vesta/route.ts": "4fc7b9307290afff",
-  "components/layout/AppShell.tsx": "97c4ce71717642ac",
+  "components/layout/AppShell.tsx": "64dea1e635d0f007",
   "components/vesta/useVesta.ts": "fa6ea93abb04a9e4",
   "lib/analysis.ts": "4ca39d6f1999dc82",
   "lib/api.ts": "0b73d3624f01c92c",
@@ -8,7 +8,7 @@
   "lib/physics.ts": "97255d8509432756",
   "lib/safety.ts": "65248dba764c56f5",
   "lib/search.ts": "6e7cdf8d97a8eb25",
-  "lib/store.ts": "bc2ec68d9bc05ede",
+  "lib/store.ts": "01ec801717c2e7fc",
   "lib/vesta/agent.ts": "a692a831a50e584f",
   "lib/vesta/alert.ts": "de7302b9ab423488",
   "lib/vesta/burn.ts": "0ef91b9643cff06e",

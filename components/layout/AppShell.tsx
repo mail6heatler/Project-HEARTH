@@ -11,6 +11,7 @@ import { VestaPanel } from "@/components/vesta/VestaPanel";
 import { postMissionAlert } from "@/components/vesta/useVesta";
 import { TestDrawer } from "@/components/ui/TestDrawer";
 import { Tour } from "@/components/ui/Tour";
+import { Presenter } from "@/components/presenter/Presenter";
 import { LaunchScreen } from "./LaunchScreen";
 import { SideNav } from "./SideNav";
 import { SiteFooter } from "./SiteFooter";
@@ -77,7 +78,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         Skip to content
       </a>
       <TopBar />
-      <div className="relative z-10 mx-auto flex max-w-[1800px] flex-col vesta:flex-row">
+      {/* the presentation's "camera" briefly zooms this stage (the transform is removed straight after) */}
+      <div id="hearth-stage" className="relative z-10 mx-auto flex max-w-[1800px] flex-col vesta:flex-row">
         <SideNav />
         <main id="main" className="min-w-0 flex-1 px-4 py-5 sm:px-6 vesta:order-2">
           {children}
@@ -88,6 +90,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <TestDrawer />
       <Hyperspace />
       <LaunchScreen />
+      <Presenter />
       <AskSelection />
       <AchievementToasts />
       <EmberTrail />

@@ -17,6 +17,8 @@ export function LaunchScreen() {
   const path = usePathname();
   const open = useHearth((s) => s.landing);
   const setLanding = useHearth((s) => s.setLanding);
+  const setPresenterOpen = useHearth((s) => s.setPresenterOpen);
+  const presenting = useHearth((s) => s.presenting);
   const [stage, setStage] = useState<Stage>("idle");
   const launchRef = useRef<HTMLButtonElement>(null);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -99,10 +101,23 @@ export function LaunchScreen() {
         <p className="ls-rise m-0 max-w-[600px] text-[15px] leading-relaxed text-[#c3cbe0] sm:text-lg" style={{ animationDelay: "0.3s" }}>
           Jump from NASA&apos;s microgravity fire tests straight to fire-safety answers for crewed habitats, with VESTA as your crewmate.
         </p>
-        <div className="ls-rise" style={{ animationDelay: "0.6s" }}>
+        <div className="ls-rise flex flex-wrap items-center justify-center gap-3" style={{ animationDelay: "0.6s" }}>
           <button ref={launchRef} type="button" onClick={launch} disabled={fast} className="ls-cta min-h-[56px] rounded-full px-8 font-head text-base font-bold tracking-[0.08em] text-[#1a0d04] sm:text-lg">
             LAUNCH PROJECT HEARTH
           </button>
+          {!presenting && (
+            <button
+              type="button"
+              disabled={fast}
+              onClick={() => {
+                close();
+                setPresenterOpen(true);
+              }}
+              className="min-h-[56px] rounded-full border border-[#cfe6ff]/30 bg-bg/60 px-6 text-sm text-text transition hover:border-[#cfe6ff]/60"
+            >
+              ▶ See HEARTH in action
+            </button>
+          )}
         </div>
       </main>
 

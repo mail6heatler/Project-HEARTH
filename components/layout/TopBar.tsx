@@ -9,6 +9,7 @@ import { useHearth } from "@/lib/store";
 export function TopBar() {
   const missionId = useHearth((s) => s.missionId);
   const setMission = useHearth((s) => s.setMission);
+  const setPresenterOpen = useHearth((s) => s.setPresenterOpen);
   const [status, setStatus] = useState<{ ok: boolean; tests?: number }>({ ok: true });
 
   useEffect(() => {
@@ -59,7 +60,14 @@ export function TopBar() {
             );
           })}
         </nav>
-        <div className="ml-auto flex items-center gap-2 text-xs" role="status">
+        <button
+          type="button"
+          onClick={() => setPresenterOpen(true)}
+          className="ml-auto hidden items-center gap-1.5 rounded-full border border-ember/40 bg-ember/10 px-3 py-1 text-xs text-ember-soft transition hover:border-ember hover:bg-ember/20 vesta:flex"
+        >
+          <span aria-hidden>▶</span> See HEARTH in action
+        </button>
+        <div className="ml-auto flex items-center gap-2 text-xs vesta:ml-0" role="status">
           <span className="relative flex h-2 w-2" aria-hidden>
             {status.ok && <span className="absolute inset-0 animate-pulseRing rounded-full bg-ok" />}
             <span className={`relative h-2 w-2 rounded-full ${status.ok ? "bg-ok" : "bg-bad"}`} />

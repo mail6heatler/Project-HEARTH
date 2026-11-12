@@ -8,6 +8,22 @@
 
 ## Log
 
+### "See HEARTH in action" presentation (2026-11-13, at the user's request)
+**Done**
+- Automated presentation over the real site, about 90 s, Team Polaris narrating with the browser's built-in voice and subtitles. 12 chapters: launch screen, Mission overview, Ask VESTA, VESTA lights up the map, Test explorer (VESTA opens a test), Compare (`/compare`), Safety & gaps (`/audit`), My data lab, Dataset, Flame simulator (Ignite), About + Engine room, end card.
+- Motion: presenter cursor that glides and presses, click ripples, spotlight with a pulsing outline, camera zoom in and out on the page stage, sliding chapter titles, live typing, subtitles that light up word by word, end card.
+- Start card with Voice, Subtitles and Record a video switches; control bar with pause (Space), restart, chapter dots, CC and voice toggles, REC indicator, exit (Esc). Recording uses the browser's screen capture and downloads HEARTH-presentation.webm/.mp4.
+- Entry points: "See HEARTH in action" on the launch screen and in the top bar, `?present=1`. Everything the visitor had is restored afterwards; VESTA answers in Offline mode during the show.
+- 6 new tests (212): every left-menu page covered, no hand-typed numbers in the narration, length ~80–100 s, voice choice.
+
+**Decisions**
+- No animation library (still not approved): CSS transitions and the Web Animations API.
+- Offline mode on stage: deterministic, instant, no tokens; every number on screen comes from the tools.
+- Achievements, the first-visit tour and toasts are paused during the show.
+
+**Problems**
+- The built-in voice may not be captured when only the tab is shared; the start card says to share the entire screen with system audio.
+
 ### Launch screen (2026-11-13, the user picked option D "Hyperspace" from the landing canvas)
 **Done**
 - Full-screen hyperspace landing over the home page on a first visit (once per browser tab): spinning star tunnel, stars flying past, glitching "PROJECT HEARTH" title, breathing flame orb, "LAUNCH PROJECT HEARTH" and "by Team Polaris". LAUNCH speeds up the tunnel, flashes white and fades away to reveal the real dashboard.

@@ -1085,3 +1085,70 @@ body.vesta-dragging {
   .ls-zoom { opacity: 0.5; }
   .launch-screen { transition: none; }
 }
+
+/* ------------------------------------------------------------------ "See HEARTH in action" presentation */
+.present-card { animation: presentIn 0.4s cubic-bezier(0.2, 1.2, 0.4, 1) both; }
+@keyframes presentIn {
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+}
+/* the presenter cursor glides; its duration is set per move */
+.present-cursor {
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.25, 0.9, 0.3, 1.05);
+  filter: drop-shadow(0 0 10px rgb(var(--ember-rgb) / 0.85)) drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6));
+  will-change: transform;
+}
+.present-arrow { transform-origin: 4px 2px; animation: cursorPress 0.32s ease-out; }
+@keyframes cursorPress {
+  0% { transform: scale(1); }
+  40% { transform: scale(0.78); }
+  100% { transform: scale(1); }
+}
+.present-ripple {
+  height: 16px;
+  width: 16px;
+  margin: -8px 0 0 -8px;
+  border-radius: 999px;
+  border: 2px solid var(--ember);
+  box-shadow: 0 0 14px rgb(var(--ember-rgb) / 0.8);
+  animation: clickRipple 0.85s ease-out both;
+}
+@keyframes clickRipple {
+  0% { transform: scale(0.4); opacity: 1; }
+  100% { transform: scale(4.2); opacity: 0; }
+}
+/* spotlight: everything else dims, the highlighted part keeps a glowing outline */
+.present-spot {
+  box-shadow: 0 0 0 9999px rgba(4, 6, 12, 0.55), 0 0 0 2px var(--ember), 0 0 26px rgb(var(--ember-rgb) / 0.6);
+  transition: left 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), top 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), width 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), height 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: spotIn 0.45s ease-out both, spotPulse 1.8s ease-in-out 0.45s infinite;
+}
+@keyframes spotIn { from { opacity: 0; } }
+@keyframes spotPulse {
+  50% { box-shadow: 0 0 0 9999px rgba(4, 6, 12, 0.55), 0 0 0 2px rgb(var(--ember-soft-rgb)), 0 0 40px rgb(var(--ember-rgb) / 0.85); }
+}
+/* chapter title: a lower third that slides in, then fades */
+.present-title {
+  border-left: 3px solid var(--ember);
+  padding: 6px 14px;
+  background: linear-gradient(90deg, rgba(4, 6, 12, 0.88), rgba(4, 6, 12, 0));
+  animation: titleIn 3.4s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+@keyframes titleIn {
+  0% { opacity: 0; transform: translateX(-30px); }
+  12% { opacity: 1; transform: none; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.present-subs { animation: presentIn 0.3s ease-out both; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45); }
+.present-subs span { transition: color 0.15s; }
+.present-bar { animation: presentIn 0.4s ease-out both; }
+.present-end { animation: endIn 0.9s ease-out both; }
+@keyframes endIn {
+  from { opacity: 0; transform: scale(1.04); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .present-cursor { transition: none; }
+  .present-arrow, .present-ripple, .present-spot, .present-title, .present-subs, .present-bar, .present-end, .present-card { animation: none !important; }
+  .present-spot { transition: none; }
+}
