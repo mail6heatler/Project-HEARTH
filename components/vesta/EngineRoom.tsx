@@ -8,6 +8,7 @@ import { BurnMeter } from "./BurnMeter";
 import { ENGINE_COLORS, ENGINE_META } from "./engineMeta";
 import { FuelTank } from "./FuelTank";
 import { toolLabel } from "./suggest";
+import { Odometer } from "./TextFx";
 import { restLeft, restShare, useCountUp, useEngines, useMeter, useNow, type Meter } from "./useEngineRoom";
 
 type TileState = "running" | "resting" | "nokey" | "ready";
@@ -167,7 +168,7 @@ export function EngineRoom() {
   const engines = useEngines();
   const { meter, refresh, loading } = useMeter(open);
   const now = useNow(open || busy || !!meter?.cooldowns.length);
-  const total = useCountUp(useMemo(() => burnTotals(burn).total, [burn]));
+  const total = useMemo(() => burnTotals(burn).total, [burn]);
 
   const lastAnswered = [...messages].reverse().find((m) => m.role === "vesta" && m.engineId)?.engineId;
   const next = autoNext(engines, meter, now);
@@ -193,7 +194,7 @@ export function EngineRoom() {
         </span>
         <span className="flex shrink-0 items-center gap-1 font-mono text-[10px] text-ember-soft" title="Tokens burned this session">
           <IconFlame className="h-3 w-3" />
-          {formatTokens(total)}
+          <Odometer value={formatTokens(total)} />
         </span>
         {fuelPct !== null && (
           <span className="flex shrink-0 items-center gap-1 font-mono text-[10px] text-ok" title="FreeLLMAPI monthly budget left">

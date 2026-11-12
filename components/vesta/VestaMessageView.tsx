@@ -1,11 +1,12 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { EChart } from "@/components/charts/EChart";
 import { IconCheck, IconCopy, IconPin } from "@/components/ui/Icons";
 import { useHearth, type Step, type VestaMessage } from "@/lib/store";
 import { formatTokens } from "@/lib/vesta/burn";
 import { ConfidenceTag, SourceChips } from "./Bits";
 import { ConfidenceFx, OrbitLoader } from "./Fx";
+import { StreamingText, Typewriter } from "./TextFx";
 import { RichText } from "./RichText";
 import { toolLabel } from "./suggest";
 
@@ -20,10 +21,13 @@ const ALERTS = {
 
 function StepRow({ step }: { step: Step }) {
   const isEngine = step.tool === "engine";
-  const dot = step.status === "running" ? "animate-pulse bg-ember shadow-[0_0_6px_var(--ember)]" : step.status === "done" ? "bg-ok" : "bg-bad";
+  // each tool is a rocket stage: it ignites while running and gets a stamped check when done
+  const stage = step.status === "running" ? "stage-burn" : step.status === "done" ? "stage-done" : "stage-fail";
   return (
-    <li className="flex items-start gap-1.5 font-mono text-[10px] leading-snug text-muted">
-      <span className={`mt-[3px] h-1.5 w-1.5 shrink-0 rounded-full ${dot}`} aria-hidden />
+    <li className="stage-row flex items-start gap-1.5 font-mono text-[10px] leading-snug text-muted">
+      <span className={`stage-mark ${stage}`} aria-hidden>
+        {step.status === "done" ? "✓" : step.status === "error" ? "✕" : ""}
+      </span>
       <span>
         {isEngine ? (
           step.summary
@@ -42,7 +46,7 @@ function StepRow({ step }: { step: Step }) {
 function ToolLog({ steps, pending }: { steps: Step[]; pending?: boolean }) {
   if (!steps.length) return null;
   const list = (
-    <ul className="space-y-0.5 border-l border-line pl-2" aria-label="Tool steps">
+    <ul className="stage-list space-y-1 pl-0.5" aria-label="Tool steps">
       {steps.map((s, i) => (
         <StepRow key={i} step={s} />
       ))}
@@ -92,11 +96,23 @@ function CopyButton({ text }: { text: string }) {
 
 function Sources({ m, onOpen }: { m: VestaMessage; onOpen: (id: string) => void }) {
   const [all, setAll] = useState(false);
+  // hovering a test's source chip lights that test up on the map, then puts the old highlight back
+  const before = useRef<string[] | null>(null);
+  const onHover = (id: string | null) => {
+    const st = useHearth.getState();
+    if (id) {
+      if (!before.current) before.current = st.highlightIds;
+      st.setHighlight([id]);
+    } else if (before.current) {
+      st.setHighlight(before.current);
+      before.current = null;
+    }
+  };
   const hidden = m.sources.length - SOURCES_SHOWN;
   const shown = all || hidden <= 0 ? m.sources : m.sources.slice(0, SOURCES_SHOWN);
   return (
     <div className="flex flex-wrap items-center gap-1">
-      <SourceChips sources={shown} onOpen={onOpen} />
+      <SourceChips sources={shown} onOpen={onOpen} onHover={onHover} />
       {hidden > 0 && (
         <button type="button" onClick={() => setAll((v) => !v)} aria-expanded={all} className="rounded border border-ember/40 px-1.5 py-0.5 font-mono text-[10px] text-ember-soft transition hover:border-ember">
           {all ? "show fewer" : `+${hidden} more`}
@@ -121,12 +137,13 @@ export function VestaMessageView({ m }: { m: VestaMessage }) {
 
   const alert = m.alert ? ALERTS[m.alert] : undefined;
   return (
-    <li className={`relative mr-1 shrink-0 overflow-hidden rounded-xl rounded-bl-sm border bg-panel/95 py-2 pl-3.5 pr-3 text-sm ${alert ? `animate-alertIn ${alert.cls}` : "animate-fadeUp border-line"}`}>
-      <span className={`absolute inset-y-0 left-0 w-[3px] ${alert?.bar ?? "bg-gradient-to-b from-ember to-ember/10"}`} aria-hidden />
+    <li className={`relative mr-1 shrink-0 rounded-xl rounded-bl-sm border bg-panel/95 py-2 pl-3.5 pr-3 text-sm ${alert ? `vesta-transmission animate-alertIn ${alert.cls}` : "animate-fadeUp border-line"}`}>
+      <span className={`absolute inset-y-0 left-0 w-[3px] rounded-bl-sm rounded-tl-xl ${alert?.bar ?? "bg-gradient-to-b from-ember to-ember/10"}`} aria-hidden />
       <div className="mb-1 flex flex-wrap items-center gap-1.5">
         <span className="vesta-dot" aria-hidden />
         <span className="font-head text-xs font-semibold tracking-wider text-ember-soft">VESTA</span>
         {alert && <span className="font-mono text-[10px] font-semibold uppercase tracking-wider">{alert.label}</span>}
+        {alert && <span className="transmission-tag font-mono text-[9px] uppercase tracking-[0.2em] text-muted">incoming transmission</span>}
         {m.badge && <span className="rounded bg-raised px-1.5 py-0.5 font-mono text-[10px] text-muted">{m.badge}</span>}
         {m.served && <span className="font-mono text-[10px] text-ember-soft" title="The model FreeLLMAPI picked">→ {m.served}</span>}
         {m.usage && (
@@ -150,7 +167,17 @@ export function VestaMessageView({ m }: { m: VestaMessage }) {
         </figure>
       ))}
       <div className={`space-y-1 leading-relaxed text-text/90 ${m.pending && m.text ? "typing-caret" : ""}`}>
-        {m.text ? <RichText text={m.text} /> : m.pending ? <Working steps={m.steps} /> : null}
+        {m.alert && m.text ? (
+          <p>
+            <Typewriter text={m.text} />
+          </p>
+        ) : m.text && m.pending ? (
+          <StreamingText text={m.text} />
+        ) : m.text ? (
+          <RichText text={m.text} terms glow={!m.cached} />
+        ) : m.pending ? (
+          <Working steps={m.steps} />
+        ) : null}
         {m.error && <p className="text-bad">{m.error}</p>}
       </div>
       {(m.sources.length > 0 || m.confidence) && (

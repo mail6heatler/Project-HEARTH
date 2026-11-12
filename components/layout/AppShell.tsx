@@ -1,6 +1,10 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { loadPrefs, savePrefs, SKINS, useHearth } from "@/lib/store";
+import { loadAchievementState, loadPrefs, saveAchievementState, savePrefs, SKINS, useHearth } from "@/lib/store";
+import { EmberTrail } from "@/components/fx/EmberTrail";
+import { ScrollReveal } from "@/components/fx/ScrollReveal";
+import { AchievementToasts } from "@/components/vesta/AchievementToasts";
+import { AskSelection } from "@/components/vesta/AskSelection";
 import { Hyperspace } from "@/components/fx/Hyperspace";
 import { SpaceBackdrop } from "@/components/fx/SpaceBackdrop";
 import { VestaPanel } from "@/components/vesta/VestaPanel";
@@ -17,6 +21,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const level = useHearth((s) => s.level);
   const skin = useHearth((s) => s.skin);
   const starfield = useHearth((s) => s.starfield);
+  const trail = useHearth((s) => s.trail);
+  const reveal = useHearth((s) => s.reveal);
+  const achStats = useHearth((s) => s.achStats);
+  const unlocked = useHearth((s) => s.unlocked);
   const loaded = useRef(false);
   const lastMission = useRef<string | null>(null);
 
@@ -24,17 +32,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const p = loadPrefs();
     const s = useHearth.getState();
+    const ach = loadAchievementState();
+    s.loadAchievements(ach.stats, ach.unlocked);
     if (p.missionId) s.setMission(p.missionId);
     if (p.engine) s.setEngine(p.engine);
     if (p.level) s.setLevel(p.level);
     if (p.skin && p.skin in SKINS) s.setSkin(p.skin);
     if (typeof p.starfield === "boolean") s.setStarfield(p.starfield);
+    if (typeof p.trail === "boolean") s.setTrail(p.trail);
+    if (typeof p.reveal === "boolean") s.setReveal(p.reveal);
     loaded.current = true;
   }, []);
 
   useEffect(() => {
-    if (loaded.current) savePrefs({ missionId, engine, level, skin, starfield });
-  }, [missionId, engine, level, skin, starfield]);
+    if (loaded.current) savePrefs({ missionId, engine, level, skin, starfield, trail, reveal });
+  }, [missionId, engine, level, skin, starfield, trail, reveal]);
+
+  useEffect(() => {
+    if (loaded.current) saveAchievementState(achStats, unlocked);
+  }, [achStats, unlocked]);
 
   // the accent skin applies to the whole site through CSS variables
   useEffect(() => {
@@ -70,6 +86,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
       <TestDrawer />
       <Hyperspace />
+      <AskSelection />
+      <AchievementToasts />
+      <EmberTrail />
+      <ScrollReveal />
       <Tour />
     </div>
   );

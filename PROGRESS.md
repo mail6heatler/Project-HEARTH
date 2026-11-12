@@ -8,6 +8,22 @@
 
 ## Log
 
+### VESTA round 2: text effects and liveliness (2026-11-12, at the user's request: "all" 20 ideas)
+**Done**
+- Header: eyes follow the mouse and widen while typing; a hat per level (cap, goggles, hard hat); scrambling status text; rolling token odometer; scan line on mission change.
+- Chat: decode-from-blur while streaming; numbers glow once in finished answers; tool steps as rocket stages with stamped checks; confidence tag stamp; warnings as an incoming transmission with typewriter; source chips light up their test on the map; glossary words with a definition plus a NASA passage (file, page) that really mentions the word.
+- Question box: typed example questions; "VESTA hears" chips (O2, pressure with unit conversion, flow, mission, tests, intent) from the Offline parser moved to browser-safe `lib/vesta/parse.ts`; `/` commands (audit, compare, gaps, rank, fact, level, skin, warp, clear, help) with arrow keys and Tab; ignition flare and fuel bar; voice input (Chrome/Edge).
+- Site: select any text → "Ask VESTA about this"; page-change warp; ember cursor trail; panels rise in on scroll; 12 achievements with toasts and a list in the looks menu (local only).
+- 9 new tests (203 in total). Checked in headless Chrome at 1440×900 and 400 px plus reduced motion: every feature above, no console errors, no sideways overflow.
+
+**Decisions**
+- No animation library: GSAP was offered but the user did not answer that question, and CLAUDE.md asks before new dependencies. Everything is CSS plus small hooks; GSAP can still replace the text effects later.
+- Numbers are never scrambled, typed as fakes or replaced: they only glow. Scramble touches letters only (tested).
+- Glossary definitions hold no data values beyond the tested rules; a NASA passage is shown only when it contains the term.
+
+**Problems**
+- Two `position: fixed` bugs found in the browser: the page warp and the glossary card sat inside animated (transformed) parents, which broke their placement and caused 94 px sideways scroll at 400 px. Fixed (moved out of the wrapper; portal). Rule added to CLAUDE.md.
+
 ### VESTA window, mini VESTA and space effects (2026-11-12, at the user's request)
 **Done**
 - Kept the panel layout and added, on desktop: drag by the header (a click stays a click), resize from the edges and corner, snap-dock left or right with a glowing drop zone, double-click to dock right, Expand with backdrop (Esc to shrink), Pop out / Dock, Hide into mini VESTA with a warp animation and a badge for mission warnings that arrive while hidden. Remembered in localStorage.

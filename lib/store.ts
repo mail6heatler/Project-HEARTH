@@ -1,6 +1,7 @@
 "use client";
 import { create } from "zustand";
 import type { Confidence, Source } from "./types";
+import { ACHIEVEMENTS, bump, EMPTY_STATS, newlyUnlocked, type AchievementStats } from "./achievements";
 import { addAnswer, addUsage, emptyTally, type BurnTally, type UsageLike } from "./vesta/burn";
 import type { EngineChoice, EngineId } from "./vesta/engines";
 import type { ChartPayload } from "./vesta/tools/make_chart";
@@ -87,6 +88,21 @@ interface HearthState {
   /** Time of the last /warp easter egg, 0 = never. */
   warpAt: number;
   warp: () => void;
+  /** Ember trail behind the mouse pointer (decoration). */
+  trail: boolean;
+  setTrail: (on: boolean) => void;
+  /** Panels rise into view while scrolling (decoration). */
+  reveal: boolean;
+  setReveal: (on: boolean) => void;
+  /** Bumped when something outside the panel wants VESTA shown (e.g. "Ask VESTA about this"). */
+  openRequest: number;
+  requestOpen: () => void;
+  achStats: AchievementStats;
+  unlocked: string[];
+  toasts: { id: string; title: string; hint: string }[];
+  track: (e: Parameters<typeof bump>[1]) => void;
+  dismissToast: (id: string) => void;
+  loadAchievements: (stats: AchievementStats, unlocked: string[]) => void;
   startLive: () => void;
   updateLive: (fn: (l: LiveRun) => LiveRun) => void;
   endLive: (answerTokens: number | null) => void;
@@ -124,11 +140,35 @@ export const useHearth = create<HearthState>((set) => ({
   roomOpen: false,
   setRoomOpen: (roomOpen) => set({ roomOpen }),
   skin: "ember",
-  setSkin: (skin) => set({ skin }),
+  setSkin: (skin) => {
+    set({ skin });
+    useHearth.getState().track({ kind: "skin", value: skin });
+  },
   starfield: true,
   setStarfield: (starfield) => set({ starfield }),
   warpAt: 0,
-  warp: () => set({ warpAt: Date.now() }),
+  warp: () => {
+    set({ warpAt: Date.now() });
+    useHearth.getState().track({ kind: "warp" });
+  },
+  trail: true,
+  setTrail: (trail) => set({ trail }),
+  reveal: true,
+  setReveal: (reveal) => set({ reveal }),
+  openRequest: 0,
+  requestOpen: () => set((s) => ({ openRequest: s.openRequest + 1 })),
+  achStats: EMPTY_STATS,
+  unlocked: [],
+  toasts: [],
+  track: (e) =>
+    set((s) => {
+      const achStats = bump(s.achStats, e);
+      const fresh = newlyUnlocked(achStats, s.unlocked);
+      if (!fresh.length) return { achStats };
+      return { achStats, unlocked: [...s.unlocked, ...fresh.map((a) => a.id)], toasts: [...s.toasts, ...fresh.map((a) => ({ id: a.id, title: a.title, hint: a.hint }))].slice(-3) };
+    }),
+  dismissToast: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
+  loadAchievements: (achStats, unlocked) => set({ achStats, unlocked: unlocked.filter((id) => ACHIEVEMENTS.some((a) => a.id === id)) }),
   startLive: () => set({ live: { startedAt: Date.now(), calls: 0, tokens: 0, fallbacks: [] } }),
   updateLive: (fn) => set((s) => (s.live ? { live: fn(s.live) } : s)),
   endLive: (answerTokens) => set((s) => ({ live: null, burn: answerTokens ? addAnswer(s.burn, answerTokens) : s.burn })),
@@ -137,9 +177,15 @@ export const useHearth = create<HearthState>((set) => ({
   setLabRows: (labRows) => set({ labRows }),
   setMission: (missionId) => set({ missionId }),
   setEngine: (engine) => set({ engine }),
-  setLevel: (level) => set({ level }),
+  setLevel: (level) => {
+    set({ level });
+    useHearth.getState().track({ kind: "level", value: level });
+  },
   setHighlight: (highlightIds) => set({ highlightIds }),
-  openTest: (openTestId) => set({ openTestId }),
+  openTest: (openTestId) => {
+    set({ openTestId });
+    if (openTestId) useHearth.getState().track({ kind: "testOpened" });
+  },
   pin: (c) => set((s) => (s.pinned.some((p) => p.id === c.id) ? s : { pinned: [...s.pinned, c].slice(-6) })),
   unpin: (id) => set((s) => ({ pinned: s.pinned.filter((p) => p.id !== id) })),
   addMessage: (m) => set((s) => ({ messages: [...s.messages, m].slice(-60) })),
@@ -152,7 +198,7 @@ export const useHearth = create<HearthState>((set) => ({
 // ---- small per-viewer preferences in localStorage (always wrapped: storage may be blocked)
 const PREFS_KEY = "hearth.prefs.v1";
 
-type Prefs = Pick<HearthState, "engine" | "level" | "missionId" | "skin" | "starfield">;
+type Prefs = Pick<HearthState, "engine" | "level" | "missionId" | "skin" | "starfield" | "trail" | "reveal">;
 
 export function loadPrefs(): Partial<Prefs> {
   try {
@@ -172,3 +218,26 @@ export function savePrefs(p: Prefs) {
 }
 
 export const newId = () => Math.random().toString(36).slice(2, 10);
+
+// ---- achievements, also per viewer in localStorage
+const ACH_KEY = "hearth.achievements.v1";
+
+export function loadAchievementState(): { stats: AchievementStats; unlocked: string[] } {
+  try {
+    const raw = JSON.parse(window.localStorage.getItem(ACH_KEY) ?? "null") as { stats?: Partial<AchievementStats>; unlocked?: unknown } | null;
+    if (!raw) return { stats: EMPTY_STATS, unlocked: [] };
+    const stats = { ...EMPTY_STATS, ...raw.stats };
+    for (const k of ["tools", "levels", "skins"] as const) if (!Array.isArray(stats[k])) stats[k] = [];
+    return { stats, unlocked: Array.isArray(raw.unlocked) ? raw.unlocked.filter((x): x is string => typeof x === "string") : [] };
+  } catch {
+    return { stats: EMPTY_STATS, unlocked: [] };
+  }
+}
+
+export function saveAchievementState(stats: AchievementStats, unlocked: string[]) {
+  try {
+    window.localStorage.setItem(ACH_KEY, JSON.stringify({ stats, unlocked }));
+  } catch {
+    /* storage blocked: achievements last for this visit only */
+  }
+}

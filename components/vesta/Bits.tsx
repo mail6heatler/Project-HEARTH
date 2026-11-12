@@ -25,7 +25,7 @@ export function sourceLabel(s: Source): string {
   return f;
 }
 
-export function SourceChips({ sources, onOpen }: { sources: Source[]; onOpen?: (testId: string) => void }) {
+export function SourceChips({ sources, onOpen, onHover }: { sources: Source[]; onOpen?: (testId: string) => void; onHover?: (testId: string | null) => void }) {
   if (!sources.length) return null;
   return (
     <ul className="flex flex-wrap gap-1" aria-label="Sources">
@@ -35,7 +35,16 @@ export function SourceChips({ sources, onOpen }: { sources: Source[]; onOpen?: (
         return (
           <li key={`${label}-${i}`}>
             {s.test_id && onOpen ? (
-              <button type="button" onClick={() => onOpen(s.test_id!)} className={`${cls} hover:border-ember hover:text-text`} title={`Open ${s.test_id}`}>
+              <button
+                type="button"
+                onClick={() => onOpen(s.test_id!)}
+                onMouseEnter={() => onHover?.(s.test_id!)}
+                onMouseLeave={() => onHover?.(null)}
+                onFocus={() => onHover?.(s.test_id!)}
+                onBlur={() => onHover?.(null)}
+                className={`${cls} hover:border-ember hover:text-text`}
+                title={`Open ${s.test_id} · lights it up on the map`}
+              >
                 {label}
               </button>
             ) : (

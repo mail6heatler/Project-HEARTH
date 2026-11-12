@@ -1,9 +1,11 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { IconAudit, IconCheck, IconDock, IconExpand, IconGap, IconGrip, IconHideMini, IconPopOut, IconRank, IconSend, IconShrink, IconStop, IconTrash } from "@/components/ui/Icons";
+import { IconAudit, IconCheck, IconDock, IconExpand, IconGap, IconGrip, IconHideMini, IconPopOut, IconRank, IconShrink, IconTrash } from "@/components/ui/Icons";
 import { getMission } from "@/lib/missions";
 import { newId, useHearth, type Level } from "@/lib/store";
+import type { Command } from "@/lib/vesta/commands";
 import { MOOD_HOLD_MS, moodFor, type Mood } from "@/lib/vesta/mood";
+import { AskBox, commandHelp } from "./AskBox";
 import { EngineRoom } from "./EngineRoom";
 import { EffectsMenu, SpaceFactCard, useSpaceFacts } from "./Fx";
 import { Orb } from "./Orb";
@@ -11,13 +13,11 @@ import { MiniVesta, VestaFace } from "./VestaFace";
 import { useVestaWindow } from "./useVestaWindow";
 import type { Edge } from "./windowGeometry";
 import { followUps, starters, toolLabel, type StarterIcon } from "./suggest";
+import { ScrambleText } from "./TextFx";
 import { useVesta } from "./useVesta";
 import { VestaMessageView } from "./VestaMessageView";
 
 const LEVELS: Level[] = ["student", "researcher", "engineer"];
-const MAX_INPUT = 2000;
-/** Show the character count only when it starts to matter. */
-const COUNT_FROM = 1600;
 
 const STARTER_ICONS: Record<StarterIcon, typeof IconAudit> = { assess: IconCheck, audit: IconAudit, rank: IconRank, gaps: IconGap };
 
@@ -31,7 +31,6 @@ export function VestaPanel() {
   const level = useHearth((s) => s.level);
   const setLevel = useHearth((s) => s.setLevel);
   const draft = useHearth((s) => s.draft);
-  const setDraft = useHearth((s) => s.setDraft);
   const clearMessages = useHearth((s) => s.clearMessages);
   const missionId = useHearth((s) => s.missionId);
   const mission = getMission(missionId);
@@ -45,6 +44,18 @@ export function VestaPanel() {
   const addMessage = useHearth((s) => s.addMessage);
   const win = useVestaWindow(panelRef);
   const facts = useSpaceFacts();
+  const setLevelPref = useHearth((s) => s.setLevel);
+  const setSkin = useHearth((s) => s.setSkin);
+  const openRequest = useHearth((s) => s.openRequest);
+
+  // VESTA "listens" (eyes widen) while you type
+  const [listening, setListening] = useState(false);
+  useEffect(() => {
+    if (!draft) return;
+    setListening(true);
+    const t = setTimeout(() => setListening(false), 700);
+    return () => clearTimeout(t);
+  }, [draft]);
 
   // VESTA's face follows the last message: thinking, happy (supported), worried (little data), alert (mission warning)
   const lastMsg = messages[messages.length - 1];
@@ -71,6 +82,29 @@ export function VestaPanel() {
     win.show();
   };
 
+  // something outside the panel (e.g. "Ask VESTA about this") wants VESTA visible
+  const firstRequest = useRef(openRequest);
+  useEffect(() => {
+    if (openRequest === firstRequest.current) return;
+    if (win.mode === "hidden") openFromMini();
+    if (!win.isDesktop) panelRef.current?.scrollIntoView({ behavior: smooth(), block: "start" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openRequest]);
+
+  const runCommand = (cmd: Command) => {
+    const local = (text: string, badge: string) => addMessage({ id: newId(), role: "vesta", text, badge, steps: [], charts: [], sources: [] });
+    if (cmd.kind === "ask") send(cmd.question);
+    else if (cmd.kind === "fact") facts.poke();
+    else if (cmd.kind === "clear") clearMessages();
+    else if (cmd.kind === "level") setLevelPref(cmd.level);
+    else if (cmd.kind === "skin") setSkin(cmd.skin);
+    else if (cmd.kind === "help") local(commandHelp(), "Commands · no AI");
+    else if (cmd.kind === "warp") {
+      warp();
+      local("Hyperspace jump complete. Back to fire safety.", "Easter egg · no AI");
+    }
+  };
+
   useEffect(() => {
     // jump while text streams in, glide only for whole new messages
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: busy ? "auto" : smooth() });
@@ -94,19 +128,6 @@ export function VestaPanel() {
     io.observe(panelRef.current);
     return () => io.disconnect();
   }, []);
-
-  const submit = (e?: React.FormEvent) => {
-    e?.preventDefault();
-    if (!draft.trim() || busy) return;
-    const t = draft;
-    setDraft("");
-    if (t.trim().toLowerCase() === "/warp") {
-      warp();
-      addMessage({ id: newId(), role: "vesta", text: "Hyperspace jump complete. Back to fire safety.", badge: "Easter egg · no AI", steps: [], charts: [], sources: [] });
-      return;
-    }
-    send(t);
-  };
 
   const jumpToPanel = () => {
     panelRef.current?.scrollIntoView({ behavior: smooth(), block: "start" });
@@ -153,7 +174,8 @@ export function VestaPanel() {
     <>
       <aside ref={panelRef} id="vesta-panel" aria-label="VESTA assistant" className={`${panelClass} ${animClass}`} style={panelStyle}>
         {anim === "in" && <div className="vesta-streaks" aria-hidden />}
-        <div id="tour-vesta" className="flex flex-wrap items-center gap-x-2 gap-y-2 border-b border-line bg-gradient-to-b from-ember/10 to-transparent px-3 py-2">
+        <div id="tour-vesta" className="relative flex flex-wrap items-center gap-x-2 gap-y-2 border-b border-line bg-gradient-to-b from-ember/10 to-transparent px-3 py-2">
+          <span key={missionId} className="vesta-scan" aria-hidden />
           <div
             onPointerDown={win.onHeaderPointerDown}
             onDoubleClick={(e) => {
@@ -165,14 +187,14 @@ export function VestaPanel() {
             {draggable && <IconGrip className="h-4 w-2.5 shrink-0 text-muted/60" />}
             <button type="button" onClick={facts.poke} aria-label="Poke VESTA for a space fire fact" title="Poke me for a space fire fact" className={`relative shrink-0 rounded-full ${wiggle}`}>
               <Orb thinking={busy} size={58} />
-              <VestaFace mood={mood} />
+              <VestaFace mood={mood} level={level} listening={listening} />
             </button>
           <div className="mr-auto min-w-0">
             <h2 className="font-head text-lg font-bold leading-tight tracking-[0.18em]">VESTA</h2>
             <p className="text-[10px] leading-tight text-muted">Your AI fire-safety crewmate</p>
             <p className="mt-0.5 flex items-center gap-1 text-[11px] text-muted" role="status" aria-live="polite">
               <span className={`h-1.5 w-1.5 rounded-full ${busy ? "animate-pulse bg-ember" : "bg-ok"}`} aria-hidden />
-              {busy ? (running ? `${toolLabel(running.tool)}…` : "Thinking…") : "Standing by"}
+              <ScrambleText text={busy ? (running ? `${toolLabel(running.tool)}…` : "Thinking…") : "Standing by"} />
             </p>
           </div>
             <div className="flex flex-col items-end gap-1 self-start" data-no-drag>
@@ -267,42 +289,7 @@ export function VestaPanel() {
               </div>
             </div>
           )}
-          <form onSubmit={submit} className="rounded-lg border border-line bg-bg/80 transition focus-within:border-ember focus-within:shadow-[0_0_16px_rgba(255,122,47,0.25)]">
-            <label htmlFor="vesta-input" className="sr-only">
-              Ask VESTA
-            </label>
-            <textarea
-              id="vesta-input"
-              ref={inputRef}
-              rows={2}
-              maxLength={MAX_INPUT}
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) submit(e);
-              }}
-              placeholder="Ask about fire risk, a test or a data gap…"
-              className="block w-full resize-none bg-transparent px-3 pt-2 text-sm placeholder:text-muted/70 focus:outline-none"
-            />
-            <div className="flex items-center justify-between gap-2 px-2 pb-1.5">
-              <span className="pl-1 font-mono text-[10px] text-muted">
-                {draft.length >= COUNT_FROM ? `${draft.length} / ${MAX_INPUT}` : (
-                  <>
-                    Enter to send<span className="hidden sm:inline"> · Shift+Enter for new line</span>
-                  </>
-                )}
-              </span>
-              {busy ? (
-                <button type="button" onClick={stop} className="flex h-8 items-center gap-1 rounded-md border border-bad/60 px-2 text-xs text-bad transition hover:bg-bad/10" aria-label="Stop VESTA">
-                  <IconStop className="h-3.5 w-3.5" /> Stop
-                </button>
-              ) : (
-                <button type="submit" disabled={!draft.trim()} className="btn-ember h-8 !px-2.5 !py-0 disabled:!shadow-none" aria-label="Send to VESTA">
-                  <IconSend className="h-4 w-4" />
-                </button>
-              )}
-            </div>
-          </form>
+          <AskBox inputRef={inputRef} busy={busy} missionName={mission?.short ?? "this mission"} onSend={send} onStop={stop} onCommand={runCommand} />
         </div>
         {mode === "float" &&
           resizeEdges.map((r) => (
@@ -322,7 +309,7 @@ export function VestaPanel() {
         </div>
       )}
       {mode === "expand" && <button type="button" onClick={win.toggleExpand} aria-label="Shrink VESTA back" className="fixed inset-0 z-[36] animate-fadeUp cursor-default bg-bg/70" />}
-      {mode === "hidden" && <MiniVesta mood={unseen ? "alert" : mood} unseen={unseen} missionName={mission?.short ?? "current mission"} onOpen={openFromMini} />}
+      {mode === "hidden" && <MiniVesta mood={unseen ? "alert" : mood} level={level} unseen={unseen} missionName={mission?.short ?? "current mission"} onOpen={openFromMini} />}
 
       {/* On phones the panel sits below the page, so keep a way to reach it from anywhere */}
       {!panelInView && (

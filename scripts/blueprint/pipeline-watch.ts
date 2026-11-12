@@ -25,6 +25,8 @@ export const WATCHED: { file: string; section: string }[] = [
   { file: "lib/vesta/router.ts", section: "vesta" },
   { file: "lib/vesta/agent.ts", section: "vesta" },
   { file: "lib/vesta/offline.ts", section: "vesta" },
+  { file: "lib/vesta/parse.ts", section: "vesta" },
+  { file: "lib/vesta/commands.ts", section: "vesta" },
   { file: "lib/vesta/engines.ts", section: "vesta" },
   { file: "lib/vesta/freellmapi-status.ts", section: "vesta" },
   { file: "lib/vesta/burn.ts", section: "vesta" },

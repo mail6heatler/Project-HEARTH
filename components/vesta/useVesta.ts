@@ -46,6 +46,7 @@ export function useVesta() {
       const controller = new AbortController();
       active = controller;
       startLive();
+      useHearth.getState().track({ kind: "question" });
       let answerTokens = 0;
       let answerComplete = true;
       try {
@@ -77,6 +78,7 @@ export function useVesta() {
               break;
             }
             case "step":
+              if (ev.status === "done" && ev.tool !== "engine") useHearth.getState().track({ kind: "tool", value: ev.tool });
               upd(id, (m) => {
                 const steps = [...m.steps];
                 const i = steps.findIndex((s) => s.tool === ev.tool && s.status === "running");
