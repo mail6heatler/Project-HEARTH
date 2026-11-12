@@ -9,7 +9,8 @@
 export type Target = string | { text: string; tag?: string; within?: string };
 
 export type Action =
-  | { do: "launch" }
+  /** Shows the launch screen and presses LAUNCH (on the narration word `cue`, if given). */
+  | { do: "launch"; cue?: string }
   | { do: "go"; path: string }
   | { do: "nav"; path: string }
   | { do: "move"; to: Target }
@@ -45,7 +46,7 @@ export const CHAPTERS: Chapter[] = [
     id: "launch",
     title: "HEARTH",
     say: "Team Polaris presents HEARTH: fire-safety intelligence for crewed habitats, built on {tests} real NASA microgravity fire tests.",
-    actions: [{ do: "launch" }],
+    actions: [{ do: "launch", cue: "real" }],
   },
   {
     id: "overview",

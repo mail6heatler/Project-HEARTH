@@ -97,9 +97,12 @@ interface HearthState {
   /** The "Launch Project HEARTH" screen: null until decided on load, then open (true) or closed (false). */
   landing: boolean | null;
   setLanding: (open: boolean) => void;
-  /** The "See HEARTH in action" start card is open. */
+  /** "See HEARTH in action" is open: the recorded demo player. */
   presenterOpen: boolean;
   setPresenterOpen: (open: boolean) => void;
+  /** The live presentation's start card is open (the backup to the recorded demo). */
+  liveOpen: boolean;
+  setLiveOpen: (open: boolean) => void;
   /** A presentation is playing: tours, toasts and achievements stay quiet. */
   presenting: boolean;
   setPresenting: (on: boolean) => void;
@@ -169,6 +172,8 @@ export const useHearth = create<HearthState>((set) => ({
   setLanding: (landing) => set({ landing }),
   presenterOpen: false,
   setPresenterOpen: (presenterOpen) => set({ presenterOpen }),
+  liveOpen: false,
+  setLiveOpen: (liveOpen) => set({ liveOpen }),
   presenting: false,
   setPresenting: (presenting) => set({ presenting }),
   setMessages: (messages) => set({ messages }),

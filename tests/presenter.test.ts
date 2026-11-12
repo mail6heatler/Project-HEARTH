@@ -10,7 +10,7 @@ describe("presentation script", () => {
   });
 
   it("opens on the launch screen and closes on Team Polaris", () => {
-    expect(CHAPTERS[0].actions[0]).toEqual({ do: "launch" });
+    expect(CHAPTERS[0].actions[0]).toMatchObject({ do: "launch" });
     expect(CHAPTERS[CHAPTERS.length - 1].say).toContain("Team Polaris");
     expect(new Set(CHAPTERS.map((c) => c.id)).size).toBe(CHAPTERS.length);
   });
@@ -92,5 +92,6 @@ describe("presentation motion", () => {
     for (const c of CHAPTERS)
       for (const a of c.actions)
         if (a.do === "cue") expect(c.say.toLowerCase(), `${c.id}: ${a.word}`).toContain(a.word.toLowerCase());
+        else if (a.do === "launch" && a.cue) expect(c.say.toLowerCase(), `${c.id}: ${a.cue}`).toContain(a.cue.toLowerCase());
   });
 });

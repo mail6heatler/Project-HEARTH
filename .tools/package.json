@@ -1,0 +1,9 @@
+{
+  "name": "hearth-demo-tools",
+  "private": true,
+  "description": "Local tools for npm run demo:record (not part of the website)",
+  "dependencies": {
+    "ffmpeg-static": "^5.3.0",
+    "puppeteer-core": "^24.43.1"
+  }
+}

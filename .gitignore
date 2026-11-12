@@ -9,3 +9,7 @@ __pycache__
 *.tsbuildinfo
 next-env.d.ts
 .pytest_cache
+
+# local-only tools for recording the demo video (ffmpeg, Chrome driver) and its work files
+.tools/node_modules
+.cache

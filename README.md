@@ -24,6 +24,7 @@ Every number shown comes from the NASA data or a tested formula, every VESTA cla
 | **Dataset** (`/dataset`) | Everything about the data: how it is stored, an interactive split explorer, every field with its fill rate and origin, investigation profiles, distributions, raw row vs clean record, quality flags and limits, a repeatable train/test split builder, downloads (CSV, JSON, dictionary) and NASA references with checksums. |
 | **Flame simulator** (`/simulator`) | **DEMO** replays of real tests in microgravity and on Earth. The moving flame is artwork steered by NASA results, not a combustion model; its numbers come from the test rows it cites, and settings with no nearby test show the data gap instead of a flame. |
 | **About** (`/about`) | Investigations, hardware, files, reference atmospheres, credits, limits and how VESTA works. |
+| **See HEARTH in action** (top bar, launch screen, `?present=1`) | A short narrated video tour of every page, filmed once from the real site so it plays smoothly every time: voice (Microsoft Aria), word-by-word subtitles and music can each be switched off; chapters, full screen, download. The same tour can also run live over the site (`?present=live`). |
 | **VESTA panel** (every page) | Streaming answers with live tool steps, inline charts (pin to dashboard), source chips, confidence tag, engine badge with tokens per answer, Engine room (pick an engine, see which one is answering, tokens burned, FreeLLMAPI fuel tank), Student / Researcher / Engineer levels, proactive alert when the mission changes. On a computer: drag, resize, expand, dock left or right, or hide VESTA into mini VESTA, whose face follows the confidence tag; poke her for a fact from the data; skins, starfield and a `/warp` easter egg. Answers decode word by word, numbers glow, glossary words explain themselves with a NASA passage; the question box shows what VESTA understood, offers `/` commands and voice input; select any text to ask VESTA about it; achievements. |
 
 ## VESTA engine chain
@@ -70,6 +71,11 @@ pip install -r scripts/ingest/requirements.txt
 python scripts/ingest/ingest.py
 python -I scripts/ingest/describe_sources.py   # file sizes, checksums and pages for /dataset
 python -m pytest scripts/ingest
+```
+Demo video (after changing the presentation script or the pages; needs Chrome and `pip install edge-tts`; ffmpeg and the Chrome driver install into `.tools/` on first run):
+```bash
+npm run demo:record                              # builds, films ~15 min, writes public/demo/
+npm run demo:record -- --seconds 12 --fps 30     # quick preview in .cache/demo/preview
 ```
 Evals: start a local server with `VESTA_EVAL_TOKEN=<16+ random chars>` and run `VESTA_EVAL_TOKEN=<same> npx tsx scripts/run-evals.ts --base http://localhost:3000` → `evals/report*.md`.
 

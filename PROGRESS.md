@@ -8,6 +8,23 @@
 
 ## Log
 
+### Recorded demo (2026-11-13, at the user's request: no lag, play a perfect recording every time)
+**Done**
+- "See HEARTH in action" now plays a pre-recorded video (`DemoPlayer.tsx`): voice, subtitles and music + sound effects can each be switched off; chapter dots, seek, full screen, download, keys. The live show stays as the backup (`?present=live`, "Run it live").
+- `npm run demo:record`: builds and starts the site, Microsoft Aria narrates (edge-tts, cached), hidden Chrome films `/?present=record` frame by frame on a virtual clock (1920×1080, 60 fps); loading time never reaches the video. Music and effects rendered offline at the logged moments; voice placed per chapter; subtitles timed word by word.
+- `lib/presenter/demo.ts` (alignment, subtitles, WAV, manifest check, player timing) + `tests/demo.test.ts` (virtual clock tested on a fake window; the video must match the current script).
+
+- Recorded take: 85 s, 1920×1080 at 60 fps, 30 MB, all 12 chapters, no page errors. Filming pacing: LAUNCH is pressed on the narration word "real" (no idle dashboard at the start) and page changes are a quick cut (about 0.3 s dark), since nothing is ever still loading on film.
+- Player checked in headless Chrome: voice and music stay within 0.04 s of the picture (also after a chapter jump), subtitles follow the voice, mute / CC / Space / end screen / Esc work, a missing video offers the live show, no sideways scroll at 400 px. Lint, 228 tests and the build pass.
+
+**Decisions**
+- Voice: Microsoft Aria via edge-tts (the user chose it; only the public narration text is sent). ffmpeg and the Chrome driver live in `.tools/` on this PC, never in the website's dependencies.
+- One video with everything mixed (the download) plus separate voice and music tracks played in sync, so the toggles work without a second copy of the video.
+
+**Problems**
+- Several forks of this chat built the feature at the same time in the same folder; the user kept one session, which merged the pieces (one helper module, the other forks' virtual clock and sound code kept).
+- Screenshots from a second DevTools session ignore the page's pixel ratio: the recorder sets the same screen on its own session to get 1920×1080.
+
 ### Presentation polish (2026-11-13, at the user's request: smoother clicks, fix the highlight box, more features)
 **Done**
 - Highlight box rewritten: locks onto its target every frame (no lag during zoom or scroll), stays inside the screen, copies the target's corner radius, only animates when moving to a new target; dim fades; lighter on the GPU (only the outline pulses). Sharper targets (one card, one answer, the drawer panel).

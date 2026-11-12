@@ -1,0 +1,1006 @@
+{
+ "version": 1,
+ "recordedAt": "2026-11-12T22:32:54.090Z",
+ "duration": 85,
+ "width": 1920,
+ "height": 1080,
+ "fps": 60,
+ "video": "hearth-demo.mp4",
+ "voice": "voice.m4a",
+ "music": "music.m4a",
+ "poster": "poster.jpg",
+ "vtt": "subtitles.vtt",
+ "bytes": 31467587,
+ "voiceName": "Microsoft Aria (en-US-AriaNeural)",
+ "chapters": [
+  {
+   "id": "launch",
+   "title": "HEARTH",
+   "start": 0.367
+  },
+  {
+   "id": "overview",
+   "title": "Mission overview",
+   "start": 10.18
+  },
+  {
+   "id": "vesta",
+   "title": "Ask VESTA",
+   "start": 18.612
+  },
+  {
+   "id": "map",
+   "title": "VESTA drives the map",
+   "start": 27.012
+  },
+  {
+   "id": "explorer",
+   "title": "Test explorer",
+   "start": 31.076
+  },
+  {
+   "id": "compare",
+   "title": "Compare",
+   "start": 39.36
+  },
+  {
+   "id": "safety",
+   "title": "Safety & gaps",
+   "start": 47.5
+  },
+  {
+   "id": "lab",
+   "title": "My data lab",
+   "start": 55.067
+  },
+  {
+   "id": "dataset",
+   "title": "Dataset",
+   "start": 60.61
+  },
+  {
+   "id": "simulator",
+   "title": "Flame simulator",
+   "start": 65.293
+  },
+  {
+   "id": "about",
+   "title": "About & the engine room",
+   "start": 71.189
+  },
+  {
+   "id": "end",
+   "title": "by Team Polaris",
+   "start": 79.925
+  }
+ ],
+ "cues": [
+  {
+   "start": 0.465,
+   "end": 2.472,
+   "text": "Team Polaris presents HEARTH:",
+   "words": [
+    {
+     "text": "Team",
+     "at": 0.465
+    },
+    {
+     "text": "Polaris",
+     "at": 0.778
+    },
+    {
+     "text": "presents",
+     "at": 1.306
+    },
+    {
+     "text": "HEARTH:",
+     "at": 1.739
+    }
+   ]
+  },
+  {
+   "start": 2.472,
+   "end": 5.273,
+   "text": "fire-safety intelligence for crewed habitats,",
+   "words": [
+    {
+     "text": "fire-safety",
+     "at": 2.472
+    },
+    {
+     "text": "intelligence",
+     "at": 3.145
+    },
+    {
+     "text": "for",
+     "at": 3.843
+    },
+    {
+     "text": "crewed",
+     "at": 3.975
+    },
+    {
+     "text": "habitats,",
+     "at": 4.227
+    }
+   ]
+  },
+  {
+   "start": 5.273,
+   "end": 10.169,
+   "text": "built on 847 real NASA microgravity fire tests.",
+   "words": [
+    {
+     "text": "built",
+     "at": 5.273
+    },
+    {
+     "text": "on",
+     "at": 5.561
+    },
+    {
+     "text": "847",
+     "at": 5.754
+    },
+    {
+     "text": "real",
+     "at": 6.907
+    },
+    {
+     "text": "NASA",
+     "at": 7.172
+    },
+    {
+     "text": "microgravity",
+     "at": 7.508
+    },
+    {
+     "text": "fire",
+     "at": 8.229
+    },
+    {
+     "text": "tests.",
+     "at": 8.554
+    }
+   ]
+  },
+  {
+   "start": 10.278,
+   "end": 11.564,
+   "text": "On Mission overview,",
+   "words": [
+    {
+     "text": "On",
+     "at": 10.278
+    },
+    {
+     "text": "Mission",
+     "at": 10.506
+    },
+    {
+     "text": "overview,",
+     "at": 10.831
+    }
+   ]
+  },
+  {
+   "start": 11.564,
+   "end": 13.343,
+   "text": "pick a habitat and see its air at a",
+   "words": [
+    {
+     "text": "pick",
+     "at": 11.564
+    },
+    {
+     "text": "a",
+     "at": 11.768
+    },
+    {
+     "text": "habitat",
+     "at": 11.841
+    },
+    {
+     "text": "and",
+     "at": 12.478
+    },
+    {
+     "text": "see",
+     "at": 12.61
+    },
+    {
+     "text": "its",
+     "at": 12.802
+    },
+    {
+     "text": "air",
+     "at": 12.958
+    },
+    {
+     "text": "at",
+     "at": 13.199
+    },
+    {
+     "text": "a",
+     "at": 13.283
+    }
+   ]
+  },
+  {
+   "start": 13.343,
+   "end": 15.661,
+   "text": "glance. Every page,",
+   "words": [
+    {
+     "text": "glance.",
+     "at": 13.343
+    },
+    {
+     "text": "Every",
+     "at": 14.747
+    },
+    {
+     "text": "page,",
+     "at": 15.072
+    }
+   ]
+  },
+  {
+   "start": 15.661,
+   "end": 16.899,
+   "text": "and our crewmate VESTA,",
+   "words": [
+    {
+     "text": "and",
+     "at": 15.661
+    },
+    {
+     "text": "our",
+     "at": 15.781
+    },
+    {
+     "text": "crewmate",
+     "at": 15.901
+    },
+    {
+     "text": "VESTA,",
+     "at": 16.298
+    }
+   ]
+  },
+  {
+   "start": 16.899,
+   "end": 18.638,
+   "text": "follow it.",
+   "words": [
+    {
+     "text": "follow",
+     "at": 16.899
+    },
+    {
+     "text": "it.",
+     "at": 17.223
+    }
+   ]
+  },
+  {
+   "start": 18.71,
+   "end": 21.184,
+   "text": "Ask VESTA in plain words.",
+   "words": [
+    {
+     "text": "Ask",
+     "at": 18.71
+    },
+    {
+     "text": "VESTA",
+     "at": 19.047
+    },
+    {
+     "text": "in",
+     "at": 19.431
+    },
+    {
+     "text": "plain",
+     "at": 19.551
+    },
+    {
+     "text": "words.",
+     "at": 19.864
+    }
+   ]
+  },
+  {
+   "start": 21.184,
+   "end": 23.384,
+   "text": "She checks the NASA data with her tools,",
+   "words": [
+    {
+     "text": "She",
+     "at": 21.184
+    },
+    {
+     "text": "checks",
+     "at": 21.436
+    },
+    {
+     "text": "the",
+     "at": 21.773
+    },
+    {
+     "text": "NASA",
+     "at": 21.869
+    },
+    {
+     "text": "data",
+     "at": 22.242
+    },
+    {
+     "text": "with",
+     "at": 22.53
+    },
+    {
+     "text": "her",
+     "at": 22.65
+    },
+    {
+     "text": "tools,",
+     "at": 22.771
+    }
+   ]
+  },
+  {
+   "start": 23.384,
+   "end": 24.586,
+   "text": "cites every source,",
+   "words": [
+    {
+     "text": "cites",
+     "at": 23.384
+    },
+    {
+     "text": "every",
+     "at": 23.684
+    },
+    {
+     "text": "source,",
+     "at": 23.949
+    }
+   ]
+  },
+  {
+   "start": 24.586,
+   "end": 27.262,
+   "text": "and tags how sure she is.",
+   "words": [
+    {
+     "text": "and",
+     "at": 24.586
+    },
+    {
+     "text": "tags",
+     "at": 24.754
+    },
+    {
+     "text": "how",
+     "at": 25.138
+    },
+    {
+     "text": "sure",
+     "at": 25.283
+    },
+    {
+     "text": "she",
+     "at": 25.559
+    },
+    {
+     "text": "is.",
+     "at": 25.739
+    }
+   ]
+  },
+  {
+   "start": 27.11,
+   "end": 29.274,
+   "text": "Her answers light up the matching tests on the",
+   "words": [
+    {
+     "text": "Her",
+     "at": 27.11
+    },
+    {
+     "text": "answers",
+     "at": 27.35
+    },
+    {
+     "text": "light",
+     "at": 27.771
+    },
+    {
+     "text": "up",
+     "at": 28
+    },
+    {
+     "text": "the",
+     "at": 28.156
+    },
+    {
+     "text": "matching",
+     "at": 28.252
+    },
+    {
+     "text": "tests",
+     "at": 28.649
+    },
+    {
+     "text": "on",
+     "at": 29.069
+    },
+    {
+     "text": "the",
+     "at": 29.201
+    }
+   ]
+  },
+  {
+   "start": 29.274,
+   "end": 31.318,
+   "text": "habitat map.",
+   "words": [
+    {
+     "text": "habitat",
+     "at": 29.274
+    },
+    {
+     "text": "map.",
+     "at": 29.826
+    }
+   ]
+  },
+  {
+   "start": 31.174,
+   "end": 33.386,
+   "text": "Test explorer filters every run,",
+   "words": [
+    {
+     "text": "Test",
+     "at": 31.174
+    },
+    {
+     "text": "explorer",
+     "at": 31.523
+    },
+    {
+     "text": "filters",
+     "at": 32.052
+    },
+    {
+     "text": "every",
+     "at": 32.508
+    },
+    {
+     "text": "run,",
+     "at": 32.761
+    }
+   ]
+  },
+  {
+   "start": 33.386,
+   "end": 36.51,
+   "text": "and VESTA can open any test for you.",
+   "words": [
+    {
+     "text": "and",
+     "at": 33.386
+    },
+    {
+     "text": "VESTA",
+     "at": 33.53
+    },
+    {
+     "text": "can",
+     "at": 33.95
+    },
+    {
+     "text": "open",
+     "at": 34.119
+    },
+    {
+     "text": "any",
+     "at": 34.455
+    },
+    {
+     "text": "test",
+     "at": 34.66
+    },
+    {
+     "text": "for",
+     "at": 34.996
+    },
+    {
+     "text": "you.",
+     "at": 35.14
+    }
+   ]
+  },
+  {
+   "start": 39.458,
+   "end": 40.732,
+   "text": "Ask her to compare,",
+   "words": [
+    {
+     "text": "Ask",
+     "at": 39.458
+    },
+    {
+     "text": "her",
+     "at": 39.771
+    },
+    {
+     "text": "to",
+     "at": 39.891
+    },
+    {
+     "text": "compare,",
+     "at": 39.999
+    }
+   ]
+  },
+  {
+   "start": 40.732,
+   "end": 42.451,
+   "text": "and she lines up ACME,",
+   "words": [
+    {
+     "text": "and",
+     "at": 40.732
+    },
+    {
+     "text": "she",
+     "at": 40.84
+    },
+    {
+     "text": "lines",
+     "at": 41.009
+    },
+    {
+     "text": "up",
+     "at": 41.369
+    },
+    {
+     "text": "ACME,",
+     "at": 41.549
+    }
+   ]
+  },
+  {
+   "start": 42.451,
+   "end": 45.778,
+   "text": "CFI and SPICE side by side.",
+   "words": [
+    {
+     "text": "CFI",
+     "at": 42.451
+    },
+    {
+     "text": "and",
+     "at": 43.208
+    },
+    {
+     "text": "SPICE",
+     "at": 43.364
+    },
+    {
+     "text": "side",
+     "at": 43.749
+    },
+    {
+     "text": "by",
+     "at": 44.013
+    },
+    {
+     "text": "side.",
+     "at": 44.17
+    }
+   ]
+  },
+  {
+   "start": 47.598,
+   "end": 49.617,
+   "text": "Safety and gaps shows prevention,",
+   "words": [
+    {
+     "text": "Safety",
+     "at": 47.598
+    },
+    {
+     "text": "and",
+     "at": 48.079
+    },
+    {
+     "text": "gaps",
+     "at": 48.187
+    },
+    {
+     "text": "shows",
+     "at": 48.524
+    },
+    {
+     "text": "prevention,",
+     "at": 48.836
+    }
+   ]
+  },
+  {
+   "start": 49.617,
+   "end": 51.709,
+   "text": "detection and suppression evidence,",
+   "words": [
+    {
+     "text": "detection",
+     "at": 49.617
+    },
+    {
+     "text": "and",
+     "at": 50.314
+    },
+    {
+     "text": "suppression",
+     "at": 50.423
+    },
+    {
+     "text": "evidence,",
+     "at": 50.963
+    }
+   ]
+  },
+  {
+   "start": 51.709,
+   "end": 54.566,
+   "text": "and what NASA has never tested.",
+   "words": [
+    {
+     "text": "and",
+     "at": 51.709
+    },
+    {
+     "text": "what",
+     "at": 51.865
+    },
+    {
+     "text": "NASA",
+     "at": 52.045
+    },
+    {
+     "text": "has",
+     "at": 52.454
+    },
+    {
+     "text": "never",
+     "at": 52.658
+    },
+    {
+     "text": "tested.",
+     "at": 52.923
+    }
+   ]
+  },
+  {
+   "start": 55.165,
+   "end": 58.278,
+   "text": "My data lab checks your own conditions against NASA's,",
+   "words": [
+    {
+     "text": "My",
+     "at": 55.165
+    },
+    {
+     "text": "data",
+     "at": 55.393
+    },
+    {
+     "text": "lab",
+     "at": 55.682
+    },
+    {
+     "text": "checks",
+     "at": 55.982
+    },
+    {
+     "text": "your",
+     "at": 56.295
+    },
+    {
+     "text": "own",
+     "at": 56.463
+    },
+    {
+     "text": "conditions",
+     "at": 56.655
+    },
+    {
+     "text": "against",
+     "at": 57.16
+    },
+    {
+     "text": "NASA's,",
+     "at": 57.533
+    }
+   ]
+  },
+  {
+   "start": 58.278,
+   "end": 60.309,
+   "text": "right in your browser.",
+   "words": [
+    {
+     "text": "right",
+     "at": 58.278
+    },
+    {
+     "text": "in",
+     "at": 58.494
+    },
+    {
+     "text": "your",
+     "at": 58.591
+    },
+    {
+     "text": "browser.",
+     "at": 58.711
+    }
+   ]
+  },
+  {
+   "start": 60.708,
+   "end": 63.701,
+   "text": "Dataset explains every field and lets you download the",
+   "words": [
+    {
+     "text": "Dataset",
+     "at": 60.708
+    },
+    {
+     "text": "explains",
+     "at": 61.273
+    },
+    {
+     "text": "every",
+     "at": 61.874
+    },
+    {
+     "text": "field",
+     "at": 62.126
+    },
+    {
+     "text": "and",
+     "at": 62.559
+    },
+    {
+     "text": "lets",
+     "at": 62.775
+    },
+    {
+     "text": "you",
+     "at": 63.016
+    },
+    {
+     "text": "download",
+     "at": 63.124
+    },
+    {
+     "text": "the",
+     "at": 63.605
+    }
+   ]
+  },
+  {
+   "start": 63.701,
+   "end": 65.516,
+   "text": "clean data.",
+   "words": [
+    {
+     "text": "clean",
+     "at": 63.701
+    },
+    {
+     "text": "data.",
+     "at": 64.001
+    }
+   ]
+  },
+  {
+   "start": 65.391,
+   "end": 67.903,
+   "text": "The flame simulator replays real tests,",
+   "words": [
+    {
+     "text": "The",
+     "at": 65.391
+    },
+    {
+     "text": "flame",
+     "at": 65.559
+    },
+    {
+     "text": "simulator",
+     "at": 65.896
+    },
+    {
+     "text": "replays",
+     "at": 66.473
+    },
+    {
+     "text": "real",
+     "at": 66.954
+    },
+    {
+     "text": "tests,",
+     "at": 67.194
+    }
+   ]
+  },
+  {
+   "start": 67.903,
+   "end": 70.823,
+   "text": "in microgravity and on Earth.",
+   "words": [
+    {
+     "text": "in",
+     "at": 67.903
+    },
+    {
+     "text": "microgravity",
+     "at": 68.047
+    },
+    {
+     "text": "and",
+     "at": 68.973
+    },
+    {
+     "text": "on",
+     "at": 69.153
+    },
+    {
+     "text": "Earth.",
+     "at": 69.333
+    }
+   ]
+  },
+  {
+   "start": 71.287,
+   "end": 73.401,
+   "text": "About tells our story.",
+   "words": [
+    {
+     "text": "About",
+     "at": 71.287
+    },
+    {
+     "text": "tells",
+     "at": 71.672
+    },
+    {
+     "text": "our",
+     "at": 71.948
+    },
+    {
+     "text": "story.",
+     "at": 72.056
+    }
+   ]
+  },
+  {
+   "start": 73.401,
+   "end": 75.312,
+   "text": "And if an AI service fails,",
+   "words": [
+    {
+     "text": "And",
+     "at": 73.401
+    },
+    {
+     "text": "if",
+     "at": 73.593
+    },
+    {
+     "text": "an",
+     "at": 73.713
+    },
+    {
+     "text": "AI",
+     "at": 73.893
+    },
+    {
+     "text": "service",
+     "at": 74.23
+    },
+    {
+     "text": "fails,",
+     "at": 74.663
+    }
+   ]
+  },
+  {
+   "start": 75.312,
+   "end": 76.79,
+   "text": "VESTA switches engines,",
+   "words": [
+    {
+     "text": "VESTA",
+     "at": 75.312
+    },
+    {
+     "text": "switches",
+     "at": 75.66
+    },
+    {
+     "text": "engines,",
+     "at": 76.093
+    }
+   ]
+  },
+  {
+   "start": 76.79,
+   "end": 80.175,
+   "text": "down to an offline mode that never fails.",
+   "words": [
+    {
+     "text": "down",
+     "at": 76.79
+    },
+    {
+     "text": "to",
+     "at": 77.054
+    },
+    {
+     "text": "an",
+     "at": 77.163
+    },
+    {
+     "text": "offline",
+     "at": 77.331
+    },
+    {
+     "text": "mode",
+     "at": 77.812
+    },
+    {
+     "text": "that",
+     "at": 78.1
+    },
+    {
+     "text": "never",
+     "at": 78.232
+    },
+    {
+     "text": "fails.",
+     "at": 78.533
+    }
+   ]
+  },
+  {
+   "start": 80.023,
+   "end": 83.703,
+   "text": "HEARTH. By Team Polaris.",
+   "words": [
+    {
+     "text": "HEARTH.",
+     "at": 80.023
+    },
+    {
+     "text": "By",
+     "at": 81.391
+    },
+    {
+     "text": "Team",
+     "at": 81.584
+    },
+    {
+     "text": "Polaris.",
+     "at": 81.908
+    }
+   ]
+  }
+ ]
+}

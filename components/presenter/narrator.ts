@@ -1,11 +1,13 @@
 "use client";
-import { pickVoiceName, speechMs, wordIndexAt } from "@/lib/presenter/timing";
+import type { LineTiming } from "@/lib/presenter/demo";
+import { pickVoiceName, speechMs, wordIndexAt, wordCount } from "@/lib/presenter/timing";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /**
  * The narrator: the browser's built-in voice. With the voice off (or no voice in this browser) the same
- * call runs on a timer, so subtitles still move word by word and the show keeps its pace.
+ * call runs on a timer, so subtitles still move word by word and the show keeps its pace. While the show is
+ * being recorded, each line follows the recorded voice's real timing instead (`script`), silently.
  */
 export class Narrator {
   voiceOn: boolean;
@@ -13,9 +15,18 @@ export class Narrator {
   /** Told when the voice starts and stops (the music steps back while it speaks). */
   onSpeaking: ((on: boolean) => void) | null = null;
   private voice: SpeechSynthesisVoice | null = null;
+  private script: Record<string, LineTiming> | null;
 
-  constructor(voiceOn: boolean) {
+  constructor(voiceOn: boolean, script: Record<string, LineTiming> | null = null) {
     this.voiceOn = voiceOn;
+    this.script = script;
+  }
+
+  /** When word `idx` of a line is due, ms after the line starts. */
+  expectedAt(text: string, idx: number): number {
+    const t = this.script?.[text];
+    if (t) return t.words[Math.min(idx, t.words.length - 1)] ?? t.ms;
+    return (speechMs(text) * idx) / Math.max(1, wordCount(text));
   }
 
   static supported(): boolean {
@@ -24,7 +35,7 @@ export class Narrator {
 
   /** Voices load lazily in some browsers: wait briefly for them, then pick the most natural English one. */
   async init(): Promise<void> {
-    if (!Narrator.supported()) return;
+    if (this.script || !Narrator.supported()) return;
     let list = window.speechSynthesis.getVoices();
     if (!list.length) {
       await new Promise<void>((resolve) => {
@@ -63,6 +74,8 @@ export class Narrator {
 
   /** Speaks (or times) one line; `onWord` gets the index of the word being said. Resolves when it is done. */
   async speak(text: string, onWord: (i: number) => void, signal: AbortSignal): Promise<void> {
+    const timing = this.script?.[text];
+    if (timing) return this.scripted(timing, onWord, signal);
     if (this.voiceOn && this.voice && Narrator.supported()) {
       const spoken = await this.speakAloud(text, onWord, signal);
       if (spoken || signal.aborted) return;
@@ -112,6 +125,22 @@ export class Narrator {
       signal.addEventListener("abort", onAbort, { once: true });
       synth.speak(u);
     });
+  }
+
+  private async scripted(t: LineTiming, onWord: (i: number) => void, signal: AbortSignal): Promise<void> {
+    this.onSpeaking?.(true);
+    const t0 = performance.now();
+    let said = -1;
+    while (!signal.aborted) {
+      const el = performance.now() - t0;
+      if (el >= t.ms) break;
+      let n = said;
+      while (n + 1 < t.words.length && t.words[n + 1] <= el) n++;
+      if (n !== said) onWord((said = n));
+      await sleep(16);
+    }
+    onWord(Number.MAX_SAFE_INTEGER);
+    this.onSpeaking?.(false);
   }
 
   private async timed(text: string, onWord: (i: number) => void, signal: AbortSignal): Promise<void> {

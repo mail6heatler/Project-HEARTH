@@ -40,6 +40,7 @@ export const WATCHED: { file: string; section: string }[] = [
   { file: "lib/safety.ts", section: "honesty" },
   { file: "next.config.mjs", section: "ship" },
   { file: "package.json", section: "ship" },
+  { file: "scripts/demo/record.mjs", section: "ship" },
 ];
 
 export type ReviewReason = "changed" | "removed" | "new";

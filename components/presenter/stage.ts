@@ -58,22 +58,26 @@ export async function settleScroll(calm: boolean): Promise<void> {
   }
 }
 
-/** After a page change: waits until its panels stop appearing (charts, map, fonts), at most `max` ms. */
-export async function settlePage(signal: AbortSignal, max = 2600): Promise<void> {
+/**
+ * After a page change: waits until its panels stop appearing (charts, map, fonts), at most `max` ms. `quick`
+ * is for the filmed demo, where loading never shows (the clock stands still while the network works), so the
+ * page only needs a moment to draw.
+ */
+export async function settlePage(signal: AbortSignal, max = 2600, quick = false): Promise<void> {
   const end = Date.now() + max;
   let count = -1;
   let stable = 0;
   try {
-    await Promise.race([document.fonts?.ready, sleep(800)]);
+    await Promise.race([document.fonts?.ready, sleep(quick ? 0 : 800)]);
   } catch {
     /* fonts API missing: carry on */
   }
   while (!signal.aborted && Date.now() < end) {
-    await sleep(120);
+    await sleep(quick ? 60 : 120);
     const n = document.querySelectorAll("#main .hud-panel, #main canvas, #main table").length;
     stable = n === count && n > 0 ? stable + 1 : 0;
     count = n;
-    if (stable >= 3) return;
+    if (stable >= (quick ? 2 : 3)) return;
   }
 }
 

@@ -243,7 +243,7 @@ export const STORIES = {
       jump: "ship",
       story: {
         s: "Takes the code from GitHub, builds the site and puts it online. It also keeps the secret keys safe, away from your browser.",
-        e: "`npm run build` runs the blueprint scan, then `next build`. API routes become Node functions with a {{functionMaxS}} second limit on `/api/vesta`. A failed build leaves the previous deployment live.",
+        e: "`npm run build` runs the blueprint scan, then `next build`. API routes become Node functions with a {{functionMaxS}} second limit on `/api/vesta`. A failed build leaves the previous deployment live. The demo video in `public/demo` is made on the team's PC with `npm run demo:record` and served as plain files.",
       } as Story,
       files: ["next.config.mjs", "package.json"],
     },
@@ -324,7 +324,8 @@ export const STORIES = {
     "components/layout/TopBar.tsx": { title: "Top bar & mission chips", story: same("The mission you pick here steers every page and VESTA at once. Shared state lives in one small store.") },
     "components/layout/SideNav.tsx": { title: "Side navigation", story: same("The list of pages. On small screens it moves to a sliding row at the top.") },
     "components/layout/SiteFooter.tsx": { title: "Footer", story: same("Credits at the bottom of every page, plus the link that opens this Blueprint and a button that replays the launch screen.") },
-    "components/presenter/Presenter.tsx": { title: "See HEARTH in action", story: same("An automatic presentation over the real site: a presenter cursor glides and clicks through every page in the menu, the view zooms and a spotlight locks onto each feature, pages change behind a soft curtain, VESTA really answers, and Team Polaris narrates with subtitles, sound effects and quiet music. Voice, subtitles, sound, cinema bars and video recording can be switched on or off.") },
+    "components/presenter/DemoPlayer.tsx": { title: "See HEARTH in action", story: same("A short video tour of every page, filmed once from the real site so it plays smoothly every time. The voice, the music and the subtitles can each be switched off, the chapter dots jump to any part, and the video can be downloaded. If the video is missing or will not play, the live presentation runs instead.") },
+    "components/presenter/Presenter.tsx": { title: "Live presentation", story: same("The same tour run live over the real site, as a backup to the video: a presenter cursor glides and clicks through every page in the menu, a spotlight locks onto each feature, VESTA really answers, and Team Polaris narrates with subtitles, sound effects and quiet music. The recorder films exactly this, frame by frame, to make the video.") },
     "components/layout/LaunchScreen.tsx": { title: "Launch screen", story: same("The hyperspace landing that greets a first visit to the home page: press LAUNCH and the tunnel speeds up, flashes white and fades away to reveal the dashboard. Decoration only; Skip intro or Esc closes it.") },
     "components/vesta/VestaPanel.tsx": { title: "VESTA panel", story: same("The chat on every page, with the level picker and the Engine room: pick an engine, watch which one is answering, the tokens it burns and the FreeLLMAPI fuel tank. On a computer you can drag it, resize it, expand it, dock it left or right, or hide it into mini VESTA, whose face follows each answer's confidence tag. Poke her for a fact from the data. It moves below the page on small screens.") },
     "components/fx/Hyperspace.tsx": { title: "Hyperspace easter egg", story: same("Type /warp in the chat for two seconds of hyperspace. Decoration only, and skipped if you prefer reduced motion.") },
