@@ -1,10 +1,13 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { chapterAt, clock, cueAt, DEMO_DIR, DEMO_MANIFEST, formatBytes, parseManifest, steer, wordAt, type DemoManifest } from "@/lib/presenter/demo";
+import { chapterAt, clock, cueAt, DEMO_DIR, DEMO_MANIFEST, downloadName, formatBytes, isReadyMade, parseManifest, steer, toSrt, wordAt, type DemoManifest, type DownloadChoice } from "@/lib/presenter/demo";
 import { useHearth } from "@/lib/store";
+import { canMakeVideo, makeVideo, saveFile } from "./exportVideo";
 
 type Stage = "card" | "playing" | "ended";
 type Load = { state: "loading" } | { state: "ready"; m: DemoManifest } | { state: "missing" };
+/** The download panel: choosing what goes in, making it (in this browser), saved, or not possible here. */
+type Dl = { step: "choose" } | { step: "making"; progress: number } | { step: "done"; name: string } | { step: "failed" };
 
 const HIDE_MS = 2500;
 const src = (file: string) => `${DEMO_DIR}/${file}`;
@@ -33,6 +36,11 @@ export function DemoPlayer() {
   const [full, setFull] = useState(false);
   /** A separate track failed to load: play the sound mixed into the video instead (one switch for all sound). */
   const [mixed, setMixed] = useState(false);
+  const [dl, setDl] = useState<Dl | null>(null);
+  const [choice, setChoice] = useState<DownloadChoice>({ voice: true, music: true, subtitles: true });
+  const making = useRef<AbortController | null>(null);
+  const dlOpen = useRef(false);
+  dlOpen.current = !!dl;
 
   const shell = useRef<HTMLDivElement>(null);
   const video = useRef<HTMLVideoElement>(null);
@@ -94,6 +102,8 @@ export function DemoPlayer() {
   }, []);
 
   const close = useCallback(() => {
+    making.current?.abort();
+    setDl(null);
     video.current?.pause();
     tracks().forEach((a) => a.pause());
     if (document.fullscreenElement) void document.exitFullscreen().catch(() => {});
@@ -102,6 +112,57 @@ export function DemoPlayer() {
     setOpen(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setOpen]);
+
+  /** The download panel opens with what the viewer has on right now (voice, music, subtitles). */
+  const openDownload = () => {
+    setChoice({ voice: voiceOn, music: musicOn, subtitles: subsOn });
+    setDl({ step: "choose" });
+  };
+  const closeDownload = useCallback(() => {
+    making.current?.abort();
+    setDl(null);
+  }, []);
+
+  /** The full mix is the recorded file itself; anything else is made here, in real time. */
+  const startDownload = async () => {
+    if (!m) return;
+    if (isReadyMade(choice)) {
+      const name = downloadName(choice);
+      saveFile(src(m.video), name);
+      setDl({ step: "done", name });
+      return;
+    }
+    video.current?.pause();
+    const ctrl = new AbortController();
+    making.current = ctrl;
+    let shown = -1;
+    setDl({ step: "making", progress: 0 });
+    const made = await makeVideo({
+      m,
+      dir: DEMO_DIR,
+      choice,
+      signal: ctrl.signal,
+      onProgress: (p) => {
+        const pc = Math.floor(p * 100);
+        if (pc === shown) return;
+        shown = pc;
+        setDl((d) => (d?.step === "making" ? { step: "making", progress: p } : d));
+      },
+    });
+    if (making.current === ctrl) making.current = null;
+    if (ctrl.signal.aborted) return;
+    if (!made) {
+      setDl({ step: "failed" });
+      return;
+    }
+    const name = downloadName(choice, made.ext);
+    saveFile(made.blob, name);
+    setDl({ step: "done", name });
+  };
+
+  const saveSubtitles = () => {
+    if (m) saveFile(new Blob([toSrt(m.cues)], { type: "application/x-subrip" }), "HEARTH-by-Team-Polaris.srt");
+  };
 
   const goLive = () => {
     close();
@@ -237,6 +298,11 @@ export function DemoPlayer() {
     if (!open || presenting) return;
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName;
+      // the download panel takes the keys while it is open: Esc closes it (and stops a video being made)
+      if (dlOpen.current) {
+        if (e.key === "Escape") closeDownload();
+        return;
+      }
       if (e.key === "Escape") {
         if (!document.fullscreenElement) close();
         return;
@@ -264,7 +330,7 @@ export function DemoPlayer() {
       document.documentElement.style.overflow = prev;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, presenting, stage, close, showBar]);
+  }, [open, presenting, stage, close, closeDownload, showBar]);
 
   useEffect(() => {
     if (open && stage === "card") playBtn.current?.focus();
@@ -306,9 +372,9 @@ export function DemoPlayer() {
                   <button type="button" onClick={() => playFrom(0)} className="btn-ghost">
                     ↺ Replay
                   </button>
-                  <a href={src(m.video)} download="HEARTH-by-Team-Polaris.mp4" className="btn-ghost">
+                  <button type="button" onClick={openDownload} className="btn-ghost">
                     ⤓ Download video
-                  </a>
+                  </button>
                   <button type="button" onClick={close} className="btn-ember px-5">
                     Back to HEARTH
                   </button>
@@ -431,9 +497,9 @@ export function DemoPlayer() {
                 <button type="button" onClick={() => setMusicOn((v) => !v)} aria-pressed={musicOn} className={`${ctl} ${musicOn ? "is-on" : ""}`} aria-label={musicOn ? "Mute music and sound effects" : "Turn music and sound effects on"} title="Music and sound effects">
                   ♪
                 </button>
-                <a href={src(m.video)} download="HEARTH-by-Team-Polaris.mp4" className={`${ctl} grid place-items-center`} aria-label={`Download the video (${formatBytes(m.bytes)})`} title={`Download (${formatBytes(m.bytes)})`}>
+                <button type="button" onClick={openDownload} className={`${ctl} grid place-items-center`} aria-label="Download the video" title="Download: choose voice, music and subtitles">
                   ⤓
-                </a>
+                </button>
                 <button type="button" onClick={toggleFull} className={ctl} aria-label={full ? "Leave full screen" : "Full screen"} title="Full screen (F)">
                   {full ? "⤡" : "⤢"}
                 </button>
@@ -449,6 +515,111 @@ export function DemoPlayer() {
                   Run it live instead
                 </button>
               </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {m && dl && (
+        <div className="absolute inset-0 z-20 grid place-items-center bg-black/60 p-4" onClick={(e) => e.target === e.currentTarget && dl.step !== "making" && closeDownload()}>
+          <div className="present-card w-full max-w-sm rounded-2xl border border-[#2c3b5e] bg-panel p-5 shadow-[0_30px_80px_rgba(0,0,0,0.6)]" role="dialog" aria-modal="true" aria-labelledby="dl-h">
+            <h3 id="dl-h" className="font-head text-lg font-bold">
+              Download the video
+            </h3>
+            {dl.step === "choose" && (
+              <>
+                <p className="mt-1 text-xs text-muted">Pick what goes into your copy.</p>
+                <div className="mt-3 grid gap-1.5">
+                  {(
+                    [
+                      ["voice", "Voice", "The narration"],
+                      ["music", "Music and sound effects", "The pad, clicks, typing and whooshes"],
+                      ["subtitles", "Subtitles", "Drawn into the picture, word by word"],
+                    ] as const
+                  ).map(([key, label, hint]) => (
+                    <label key={key} className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-line bg-raised/60 px-3 py-2">
+                      <span>
+                        <span className="block text-sm font-medium text-text">{label}</span>
+                        <span className="block text-[11px] text-muted">{hint}</span>
+                      </span>
+                      <input type="checkbox" checked={choice[key]} onChange={(e) => setChoice((c) => ({ ...c, [key]: e.target.checked }))} className="h-5 w-5 shrink-0 accent-[var(--ember)]" />
+                    </label>
+                  ))}
+                </div>
+                <p className="mt-3 text-[11px] leading-snug text-muted">
+                  {isReadyMade(choice)
+                    ? `Ready now: ${formatBytes(m.bytes)}, MP4.`
+                    : canMakeVideo()
+                      ? `Made in this browser while the video plays through once, about ${clock(m.duration)}. Keep this tab open.`
+                      : "This browser can't make a custom copy. Untick Subtitles and keep both sounds for the ready-made video, and download the subtitles file."}
+                </p>
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+                  <button type="button" onClick={saveSubtitles} className="text-xs text-muted underline-offset-2 hover:text-text hover:underline">
+                    Subtitles file (.srt)
+                  </button>
+                  <span className="flex gap-2">
+                    <button type="button" onClick={closeDownload} className="btn-ghost">
+                      Cancel
+                    </button>
+                    <button type="button" autoFocus disabled={!isReadyMade(choice) && !canMakeVideo()} onClick={() => void startDownload()} className="btn-ember px-4 disabled:opacity-50">
+                      ⤓ Download
+                    </button>
+                  </span>
+                </div>
+              </>
+            )}
+            {dl.step === "making" && (
+              <>
+                <p className="mt-1 text-xs text-muted">Making your copy: the video plays through once, unseen. Keep this tab open.</p>
+                <div className="mt-4 h-2 overflow-hidden rounded-full bg-line" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(dl.progress * 100)} aria-label="Making the video">
+                  <div className="h-full rounded-full bg-ember transition-[width] duration-300" style={{ width: `${Math.max(2, dl.progress * 100)}%` }} />
+                </div>
+                <p className="mt-2 flex justify-between font-mono text-[11px] text-muted">
+                  <span>{Math.round(dl.progress * 100)}%</span>
+                  <span>about {clock((1 - dl.progress) * m.duration)} left</span>
+                </p>
+                <div className="mt-4 flex justify-end">
+                  <button type="button" onClick={closeDownload} className="btn-ghost">
+                    Stop
+                  </button>
+                </div>
+              </>
+            )}
+            {dl.step === "done" && (
+              <>
+                <p className="mt-2 text-sm text-ok">Saved to your downloads:</p>
+                <p className="mt-0.5 break-all font-mono text-xs text-text">{dl.name}</p>
+                <div className="mt-4 flex justify-end gap-2">
+                  <button type="button" onClick={() => setDl({ step: "choose" })} className="btn-ghost">
+                    Another copy
+                  </button>
+                  <button type="button" autoFocus onClick={closeDownload} className="btn-ember px-4">
+                    Done
+                  </button>
+                </div>
+              </>
+            )}
+            {dl.step === "failed" && (
+              <>
+                <p className="mt-2 text-sm text-warn">This browser could not make that copy.</p>
+                <p className="mt-1 text-xs text-muted">You can still download the ready-made video (voice and music, no subtitles) and the subtitles file.</p>
+                <div className="mt-4 flex flex-wrap justify-end gap-2">
+                  <button type="button" onClick={saveSubtitles} className="btn-ghost">
+                    Subtitles (.srt)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const full = { voice: true, music: true, subtitles: false };
+                      saveFile(src(m.video), downloadName(full));
+                      setDl({ step: "done", name: downloadName(full) });
+                    }}
+                    className="btn-ember px-4"
+                  >
+                    Ready-made video
+                  </button>
+                </div>
+              </>
             )}
           </div>
         </div>

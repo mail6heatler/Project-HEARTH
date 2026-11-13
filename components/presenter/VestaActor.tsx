@@ -4,7 +4,7 @@ import { Orb } from "@/components/vesta/Orb";
 import { VestaFace } from "@/components/vesta/VestaFace";
 import { curvePoint, easeInOutCubic, type Pt } from "@/lib/presenter/motion";
 import type { Level } from "@/lib/store";
-import type { Mood, Shades } from "@/lib/vesta/mood";
+import type { Glasses, Mood } from "@/lib/vesta/mood";
 
 /** Her size in the middle of the screen (px). */
 const SIZE = 200;
@@ -33,7 +33,7 @@ export const VestaActor = forwardRef<ActorApi, { level: Level }>(function VestaA
   const first = useRef("");
   const [on, setOn] = useState(false);
   const [mood, setMood] = useState<Mood>("idle");
-  const [shades, setShades] = useState<Shades>("on");
+  const [glasses, setGlasses] = useState<Glasses>("on");
   const [drop, setDrop] = useState<number | undefined>(undefined);
   const [hello, setHello] = useState<string | null>(null);
   const [burst, setBurst] = useState(0);
@@ -49,8 +49,8 @@ export const VestaActor = forwardRef<ActorApi, { level: Level }>(function VestaA
         // drawn straight onto the mini orb on its first frame (no flash in a corner)
         first.current = place(start, s0, 0);
         setMood("idle");
-        // the wind of the flight pushes her shades up
-        setShades("up");
+        // she flies without her glasses and puts them on when she lands
+        setGlasses("off");
         setDrop(undefined);
         setHello(null);
         setOn(true);
@@ -75,7 +75,7 @@ export const VestaActor = forwardRef<ActorApi, { level: Level }>(function VestaA
         } else node.style.transform = place(end, 1, 0);
         first.current = place(end, 1, 0);
         setBurst((b) => b + 1);
-        setShades("on");
+        setGlasses("on");
         setDrop((d) => (d ?? 0) + 1);
         setMood("happy");
         onLand?.();
@@ -113,7 +113,7 @@ export const VestaActor = forwardRef<ActorApi, { level: Level }>(function VestaA
         </span>
       )}
       <Orb thinking={mood === "thinking"} size={SIZE} />
-      <VestaFace mood={mood} level={level} shades={shades} shadesDrop={drop} />
+      <VestaFace mood={mood} level={level} glasses={glasses} glassesDrop={drop} />
       {hello && <span className="actor-hello">{hello}</span>}
     </div>
   );

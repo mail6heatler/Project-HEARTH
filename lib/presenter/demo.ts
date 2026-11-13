@@ -165,6 +165,51 @@ export function toVtt(cues: Cue[]): string {
   return ["WEBVTT", "", ...cues.flatMap((c, i) => [String(i + 1), `${stamp(c.start)} --> ${stamp(c.end)}`, c.text, ""])].join("\n");
 }
 
+/** SubRip subtitles (.srt): the file most video players pick up next to a video. */
+export function toSrt(cues: Cue[]): string {
+  const srt = (s: number) => stamp(s).replace(".", ",");
+  return cues.flatMap((c, i) => [String(i + 1), `${srt(c.start)} --> ${srt(c.end)}`, c.text, ""]).join("\n");
+}
+
+/** What goes into a downloaded video. */
+export interface DownloadChoice {
+  voice: boolean;
+  music: boolean;
+  subtitles: boolean;
+}
+
+/** The recorded file already has the voice and the music + effects mixed in, and no subtitles in the picture. */
+export function isReadyMade(c: DownloadChoice): boolean {
+  return c.voice && c.music && !c.subtitles;
+}
+
+/** "HEARTH-by-Team-Polaris-subtitles-no-music.mp4": says what is in it. */
+export function downloadName(c: DownloadChoice, ext = "mp4"): string {
+  const parts: string[] = [];
+  if (c.subtitles) parts.push("subtitles");
+  if (!c.voice && !c.music) parts.push("no-sound");
+  else {
+    if (!c.voice) parts.push("no-voice");
+    if (!c.music) parts.push("no-music");
+  }
+  return `HEARTH-by-Team-Polaris${parts.length ? `-${parts.join("-")}` : ""}.${ext}`;
+}
+
+/** Splits words into lines no wider than `max` (by `measure`); a word wider than a line gets a line of its own. */
+export function wrapWords(words: string[], measure: (text: string) => number, max: number): string[][] {
+  const lines: string[][] = [];
+  let line: string[] = [];
+  for (const w of words) {
+    const next = [...line, w];
+    if (line.length && measure(next.join(" ")) > max) {
+      lines.push(line);
+      line = [w];
+    } else line = next;
+  }
+  if (line.length) lines.push(line);
+  return lines;
+}
+
 /** The subtitle showing at a moment (seconds), or null. */
 export function cueAt(cues: Cue[], t: number): Cue | null {
   for (const c of cues) if (t >= c.start && t < c.end) return c;

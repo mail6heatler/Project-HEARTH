@@ -3,7 +3,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useHearth } from "@/lib/store";
 import { clampRect, DEFAULT_RECT, DRAG_START_PX, expandRect, parseSaved, resizeRect, snapZone, TOP, type Dock, type Edge, type Rect, type WinMode } from "./windowGeometry";
 
-const KEY = "hearth.vesta-window.v1";
+/** v2: every visit now starts with mini VESTA (older saved setups are not carried over). */
+const KEY = "hearth.vesta-window.v2";
 const DESKTOP = "(min-width: 1180px)";
 const ANIM_OUT_MS = 360;
 const ANIM_IN_MS = 650;
@@ -42,6 +43,8 @@ export function useVestaWindow(panelRef: React.RefObject<HTMLElement>) {
   const [anim, setAnim] = useState<WindowAnim | null>(null);
   const [zone, setZone] = useState<"left" | "right" | null>(null);
   const [dragging, setDragging] = useState(false);
+  /** The saved state has been read: until then the desktop panel is not drawn (no flash before mini VESTA). */
+  const [ready, setReady] = useState(false);
   const loaded = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout>>();
 
@@ -64,9 +67,10 @@ export function useVestaWindow(panelRef: React.RefObject<HTMLElement>) {
     if (saved) {
       setDock(saved.dock);
       setHidden(saved.hidden);
-    }
+    } else setHidden(true); // a first visit starts with mini VESTA, who says hello
     sync();
     loaded.current = true;
+    setReady(true);
     mq.addEventListener("change", sync);
     window.addEventListener("resize", sync);
     return () => {
@@ -126,7 +130,7 @@ export function useVestaWindow(panelRef: React.RefObject<HTMLElement>) {
         setAnim(null);
         setExpanded(false);
         setDock(saved?.dock ?? "right");
-        setHidden(saved?.hidden ?? false);
+        setHidden(saved?.hidden ?? true);
         return;
       }
       const apply = () => {
@@ -265,5 +269,5 @@ export function useVestaWindow(panelRef: React.RefObject<HTMLElement>) {
 
   const box: Rect | null = mode === "float" ? rect : mode === "expand" ? expandRect(vp.w, vp.h) : null;
 
-  return { isDesktop, mode, dock, box, anim, zone, dragging, onHeaderPointerDown, startResize, dockRight, toggleFloat, toggleExpand, hide, show };
+  return { isDesktop, ready, mode, dock, box, anim, zone, dragging, onHeaderPointerDown, startResize, dockRight, toggleFloat, toggleExpand, hide, show };
 }

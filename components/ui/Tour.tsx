@@ -7,8 +7,14 @@ const KEY = "hearth.tour.v1";
 const STEPS = [
   { target: "tour-missions", title: "1 · Pick a mission", text: "Switch between the ISS, a Moon base, a pressurized lunar rover (demo scenario) and a spacesuit. Every page and VESTA follow the mission you pick." },
   { target: "tour-map", title: "2 · The habitat relevance map", text: "Every NASA test by pressure and oxygen. The gold line has the same O2 partial pressure as the ISS, and your mission is marked on the map. Click a point for its details." },
-  { target: "tour-vesta", title: "3 · Ask VESTA", text: "VESTA answers with numbers from the NASA data or tested formulas, cites sources and adds a confidence tag. The Engine room picks the AI engine and shows the tokens it burns; Auto falls back to the next engine, down to Offline mode." },
-];
+  {
+    target: "tour-vesta",
+    // VESTA starts as mini VESTA in the corner: point at her there when her chat is closed
+    alt: "vesta-mini",
+    title: "3 · Ask VESTA",
+    text: "Click VESTA to open her chat. She answers with numbers from the NASA data or tested formulas, cites sources and adds a confidence tag. The Engine room picks the AI engine and shows the tokens it burns; Auto falls back to the next engine, down to Offline mode.",
+  },
+] as { target: string; alt?: string; title: string; text: string }[];
 
 interface Box {
   top: number;
@@ -44,6 +50,16 @@ export function Tour() {
     if (presenting) setStep(null);
   }, [presenting]);
 
+  // mini VESTA waits with her hello while the tour is open
+  useEffect(() => {
+    const root = document.documentElement;
+    if (step == null) delete root.dataset.tour;
+    else root.dataset.tour = "on";
+    return () => {
+      delete root.dataset.tour;
+    };
+  }, [step]);
+
   const finish = useCallback(() => {
     setStep(null);
     try {
@@ -56,7 +72,11 @@ export function Tour() {
   useEffect(() => {
     if (step == null) return;
     const measure = () => {
-      const el = document.getElementById(STEPS[step].target);
+      const shown = (id?: string) => {
+        const e = id ? document.getElementById(id) : null;
+        return e && e.getClientRects().length ? e : null;
+      };
+      const el = shown(STEPS[step].target) ?? shown(STEPS[step].alt);
       if (!el) return setBox(null);
       el.scrollIntoView({ block: "nearest", behavior: "smooth" });
       const r = el.getBoundingClientRect();
@@ -79,8 +99,9 @@ export function Tour() {
   const vw = typeof window !== "undefined" ? window.innerWidth : 1200;
   const vh = typeof window !== "undefined" ? window.innerHeight : 800;
   const cardW = Math.min(340, vw - 32);
-  let top = box ? box.top + box.height + 12 : vh / 2 - 80;
-  if (top + 190 > vh) top = Math.max(16, (box?.top ?? vh / 2) - 200);
+  // below the target if it fits, else above it (anchored by its bottom edge, so a long card never covers it)
+  const below = box ? box.top + box.height + 12 : vh / 2 - 80;
+  const place: React.CSSProperties = below + 190 <= vh ? { top: below } : { bottom: Math.max(16, vh - (box?.top ?? vh / 2) + 12) };
   const left = Math.min(Math.max(16, box ? box.left : vw / 2 - cardW / 2), vw - cardW - 16);
 
   return (
@@ -92,7 +113,7 @@ export function Tour() {
           style={{ top: box.top - 6, left: box.left - 6, width: box.width + 12, height: box.height + 12, boxShadow: "0 0 0 9999px rgba(0,0,0,0.25)" }}
         />
       )}
-      <div className="absolute animate-fadeUp rounded-xl border border-line bg-panel p-4 shadow-2xl" style={{ top, left, width: cardW }}>
+      <div className="absolute animate-fadeUp rounded-xl border border-line bg-panel p-4 shadow-2xl" style={{ ...place, left, width: cardW }}>
         <p className="font-mono text-[10px] uppercase tracking-widest text-ember-soft">Welcome to HEARTH</p>
         <h2 className="mt-1 font-head text-lg font-bold">{s.title}</h2>
         <p className="mt-1 text-sm text-muted">{s.text}</p>

@@ -4,7 +4,7 @@ import { IconAudit, IconCheck, IconDock, IconExpand, IconGap, IconGrip, IconHide
 import { getMission } from "@/lib/missions";
 import { newId, useHearth, type Level } from "@/lib/store";
 import type { Command } from "@/lib/vesta/commands";
-import { MOOD_HOLD_MS, moodFor, type Mood } from "@/lib/vesta/mood";
+import { GREET_MS, greetingLine, MAX_NUDGES, MOOD_HOLD_MS, moodFor, NUDGE_EVERY_MS, type Mood } from "@/lib/vesta/mood";
 import { AskBox, commandHelp } from "./AskBox";
 import { EngineRoom } from "./EngineRoom";
 import { EffectsMenu, SpaceFactCard, useSpaceFacts } from "./Fx";
@@ -18,6 +18,8 @@ import { useVesta } from "./useVesta";
 import { VestaMessageView } from "./VestaMessageView";
 
 const LEVELS: Level[] = ["student", "researcher", "engineer"];
+/** Set once a visitor has opened VESTA's chat: mini VESTA then stops nudging (she still says hello once per visit). */
+const MET_KEY = "hearth.vesta-met.v1";
 
 const STARTER_ICONS: Record<StarterIcon, typeof IconAudit> = { assess: IconCheck, audit: IconAudit, rank: IconRank, gaps: IconGap };
 
@@ -47,6 +49,7 @@ export function VestaPanel() {
   const setLevelPref = useHearth((s) => s.setLevel);
   const setSkin = useHearth((s) => s.setSkin);
   const openRequest = useHearth((s) => s.openRequest);
+  const presenting = useHearth((s) => s.presenting);
 
   // VESTA "listens" (eyes widen) while you type
   const [listening, setListening] = useState(false);
@@ -69,14 +72,26 @@ export function VestaPanel() {
   }, [baseMood, lastMsg?.id]);
   const mood: Mood = relaxed ? "idle" : baseMood;
 
-  // warnings that arrive while VESTA is hidden show as a badge on mini VESTA
+  // warnings that arrive while VESTA is hidden show as a badge on mini VESTA, and she hops to get noticed
   const [unseen, setUnseen] = useState(0);
+  /** The mission the latest unseen warning was about (the visitor may have switched since). */
+  const [unseenFor, setUnseenFor] = useState("");
+  const [hop, setHop] = useState(0);
   const seenId = useRef<string | undefined>(undefined);
   useEffect(() => {
     if (!lastMsg || lastMsg.id === seenId.current) return;
     seenId.current = lastMsg.id;
-    if (win.mode === "hidden" && (lastMsg.alert === "warn" || lastMsg.alert === "bad")) setUnseen((n) => n + 1);
+    if (win.mode === "hidden" && (lastMsg.alert === "warn" || lastMsg.alert === "bad")) {
+      setUnseen((n) => n + 1);
+      setUnseenFor(mission?.short ?? "this mission");
+      setHop((h) => h + 1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastMsg, win.mode]);
+  // a cleared chat has no unseen warnings left
+  useEffect(() => {
+    if (!messages.length) setUnseen(0);
+  }, [messages.length]);
   const openFromMini = () => {
     setUnseen(0);
     win.show();
@@ -85,6 +100,78 @@ export function VestaPanel() {
   useEffect(() => {
     if (win.mode !== "hidden") setUnseen(0);
   }, [win.mode]);
+  // a question sent from a page button while she is mini VESTA: open her, so the answer is seen
+  useEffect(() => {
+    if (busy && win.mode === "hidden" && !presenting) openFromMini();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [busy]);
+
+  // mini VESTA says hello once per visit (after the launch screen and the tour), then, until the visitor has
+  // opened her once, hops and waves again a few times. Never during the presentation.
+  const [greet, setGreet] = useState<{ key: number; title: string; text: string } | null>(null);
+  const greeted = useRef(false);
+  const nudges = useRef(0);
+  const met = useRef(true);
+  const sayRef = useRef({ unseen, mission: unseenFor || (mission?.short ?? "this mission") });
+  sayRef.current = { unseen, mission: unseenFor || (mission?.short ?? "this mission") };
+  useEffect(() => {
+    try {
+      met.current = window.localStorage.getItem(MET_KEY) === "1";
+    } catch {
+      met.current = true; // storage blocked: don't nag
+    }
+  }, []);
+  useEffect(() => {
+    if (!win.ready || win.mode === "hidden" || presenting || !win.isDesktop) return;
+    met.current = true;
+    setGreet(null);
+    try {
+      window.localStorage.setItem(MET_KEY, "1");
+    } catch {
+      /* not remembered */
+    }
+  }, [win.ready, win.mode, win.isDesktop, presenting]);
+  useEffect(() => {
+    if (!win.ready || win.mode !== "hidden" || presenting) return;
+    let stopped = false;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const wait = (ms: number) => new Promise<void>((r) => timers.push(setTimeout(r, ms)));
+    const root = document.documentElement;
+    const quiet = () => useHearth.getState().presenting || useHearth.getState().landing !== false || !!root.dataset.tour || root.classList.contains("demo-watching");
+    const say = async (nudge: boolean) => {
+      const { unseen: n, mission: name } = sayRef.current;
+      setGreet({ key: Date.now(), ...greetingLine(n, name, nudge) });
+      setHop((h) => h + 1);
+      await wait(GREET_MS);
+      if (!stopped) setGreet(null);
+    };
+    void (async () => {
+      if (new URLSearchParams(window.location.search).has("present")) return;
+      if (!greeted.current) {
+        // wait until nothing has covered the page for a moment (the tour opens a beat after the launch screen)
+        let clear = 0;
+        while (!stopped && clear < 2000) {
+          await wait(250);
+          clear = quiet() ? 0 : clear + 250;
+        }
+        if (stopped) return;
+        greeted.current = true;
+        await say(false);
+      }
+      while (!stopped && !met.current && nudges.current < MAX_NUDGES) {
+        await wait(NUDGE_EVERY_MS);
+        if (stopped || met.current) return;
+        if (quiet()) continue;
+        nudges.current++;
+        await say(true);
+      }
+    })();
+    return () => {
+      stopped = true;
+      timers.forEach(clearTimeout);
+      setGreet(null);
+    };
+  }, [win.ready, win.mode, presenting]);
 
   // something outside the panel (e.g. "Ask VESTA about this") wants VESTA visible
   const firstRequest = useRef(openRequest);
@@ -157,7 +244,9 @@ export function VestaPanel() {
   const panelClass =
     mode === "hidden"
       ? "hidden"
-      : floating
+      : !win.ready
+        ? `${docked} vesta:hidden`
+        : floating
         ? `fixed flex flex-col overflow-hidden rounded-2xl border border-[#2c3b5e] bg-panel/95 shadow-[0_24px_60px_rgba(0,0,0,0.6),0_0_30px_rgba(255,122,47,0.12)] ${mode === "expand" ? "z-[37]" : "z-[35]"}`
         : docked;
   const panelStyle = {
@@ -313,7 +402,7 @@ export function VestaPanel() {
         </div>
       )}
       {mode === "expand" && <button type="button" onClick={win.toggleExpand} aria-label="Shrink VESTA back" className="fixed inset-0 z-[36] animate-fadeUp cursor-default bg-bg/70" />}
-      {mode === "hidden" && <MiniVesta mood={unseen ? "alert" : mood} level={level} unseen={unseen} missionName={mission?.short ?? "current mission"} onOpen={openFromMini} />}
+      {mode === "hidden" && <MiniVesta mood={unseen ? "alert" : mood} level={level} unseen={unseen} missionName={unseenFor || (mission?.short ?? "current mission")} greet={greet} hop={hop} onOpen={openFromMini} />}
 
       {/* On phones the panel sits below the page, so keep a way to reach it from anywhere */}
       {!panelInView && (

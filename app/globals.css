@@ -588,24 +588,64 @@ body.vesta-dragging {
   translate: -20% 0;
   rotate: -10deg;
 }
-/* see-through sunglasses: over her eyes when relaxed or pleased, up on her forehead to think or worry */
-.vf-shades {
+/* nerdy glasses (clear lenses, so her eyes always show): on her eyes when relaxed or pleased, pushed up her
+   nose as she starts thinking, slid down so she peers over them when worried or warning */
+.vf-glasses {
   position: absolute;
   left: 12%;
-  top: 33%;
+  top: 31%;
   width: 76%;
   overflow: visible;
-  filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.4));
   transform-origin: 50% 50%;
   transition: transform 0.45s cubic-bezier(0.3, 1.4, 0.5, 1);
 }
-.shades-up .vf-shades { transform: translateY(-104%) rotate(-5deg) scale(0.95); }
-.vf-shades.is-drop { animation: shadesDrop 0.6s cubic-bezier(0.2, 1.45, 0.4, 1) both; }
-@keyframes shadesDrop {
+.glasses-low .vf-glasses { transform: translateY(22%) rotate(-2deg); }
+.glasses-push .vf-glasses { animation: glassesPush 0.7s cubic-bezier(0.3, 1.3, 0.5, 1) both; }
+@keyframes glassesPush {
+  0% { transform: translateY(16%); }
+  45% { transform: translateY(-8%); }
+  100% { transform: none; }
+}
+.glasses-push .vf-glint { animation: vfGlintNow 0.6s ease-out 0.3s both; }
+@keyframes vfGlintNow {
+  from { transform: translateX(0); }
+  to { transform: translateX(150px); }
+}
+/* behind the lenses her eyes look a little bigger */
+.glasses-on .vf-eye { scale: 1.08; }
+.vf-glasses.is-drop { animation: glassesDrop 0.6s cubic-bezier(0.2, 1.45, 0.4, 1) both; }
+@keyframes glassesDrop {
   0% { transform: translateY(-260%) rotate(-16deg); opacity: 0; }
   40% { opacity: 1; }
   100% { transform: none; opacity: 1; }
 }
+/* freckles and buck teeth: the nerdy touches */
+.vf-freckles {
+  position: absolute;
+  top: 58%;
+  width: 12%;
+  height: 6%;
+  background:
+    radial-gradient(circle at 20% 40%, rgba(130, 44, 8, 0.55) 0 1.4cqw, transparent 1.6cqw),
+    radial-gradient(circle at 55% 75%, rgba(130, 44, 8, 0.55) 0 1.4cqw, transparent 1.6cqw),
+    radial-gradient(circle at 85% 30%, rgba(130, 44, 8, 0.55) 0 1.4cqw, transparent 1.6cqw);
+}
+.vf-freckles.l { left: 20%; }
+.vf-freckles.r { right: 20%; }
+.vf-mouth::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 34%;
+  height: 70%;
+  translate: -50% 0;
+  border-radius: 0 0 1.5cqw 1.5cqw;
+  background: linear-gradient(90deg, #fffaf0 0 46%, #d9cbb5 46% 54%, #fffaf0 54%);
+}
+.mood-happy .vf-mouth::after { top: 0; height: 32%; width: 30%; }
+.mood-worried .vf-mouth::after, .mood-alert .vf-mouth::after, .mood-thinking .vf-mouth::after { display: none; }
 .vf-glint { animation: vfGlint 5.5s ease-in-out infinite; }
 @keyframes vfGlint {
   0%, 72% { transform: translateX(0); }
@@ -679,6 +719,53 @@ body.vesta-dragging {
 .vesta-mini-body.mood-worried { --glow: rgb(255 200 87 / 0.6); }
 .vesta-mini-body.mood-alert { --glow: rgb(255 93 108 / 0.75); }
 .vesta-mini-body.mood-thinking { --glow: rgb(255 226 204 / 0.6); }
+/* mini VESTA says hello: she jumps (squash and stretch), waves and talks; a hop also greets a new warning */
+.vesta-hop { animation: vestaHop 1.5s cubic-bezier(0.3, 0.7, 0.4, 1) both; transform-origin: 50% 100%; }
+@keyframes vestaHop {
+  0% { transform: translateY(0) scale(1); }
+  10% { transform: translateY(0) scale(1.12, 0.86); }
+  26% { transform: translateY(-34px) scale(0.92, 1.1); }
+  40% { transform: translateY(0) scale(1.1, 0.9); }
+  52% { transform: translateY(-16px) scale(0.96, 1.05); }
+  64% { transform: translateY(0) scale(1.05, 0.95); }
+  76% { transform: translateY(-5px); }
+  88%, 100% { transform: none; }
+}
+.vesta-wave {
+  transform-origin: 70% 85%;
+  animation: vestaWave 2.6s ease-in-out both;
+}
+@keyframes vestaWave {
+  0% { transform: scale(0) rotate(-30deg); opacity: 0; }
+  10% { transform: scale(1.1) rotate(0); opacity: 1; }
+  20%, 40%, 60% { transform: rotate(22deg); }
+  30%, 50%, 70% { transform: rotate(-12deg); }
+  85% { transform: rotate(0); opacity: 1; }
+  100% { transform: scale(0.6); opacity: 0; }
+}
+.vesta-hello {
+  transform-origin: 100% 100%;
+  animation: vestaHello 0.5s cubic-bezier(0.2, 1.45, 0.4, 1) 0.25s both;
+}
+@keyframes vestaHello {
+  from { transform: translate(10px, 8px) scale(0.5); opacity: 0; }
+}
+.mini-burst i {
+  position: absolute;
+  left: -3px;
+  top: -3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #ffe2cc;
+  box-shadow: 0 0 6px rgb(var(--ember-rgb) / 0.9);
+  animation: miniSpark 0.8s cubic-bezier(0.2, 0.8, 0.3, 1) 0.35s both;
+}
+.mini-burst i:nth-child(even) { background: #4cc9f0; box-shadow: 0 0 6px rgba(76, 201, 240, 0.8); }
+@keyframes miniSpark {
+  0% { transform: rotate(var(--a)) translateY(-30px) scale(1); opacity: 1; }
+  100% { transform: rotate(var(--a)) translateY(-66px) scale(0.2); opacity: 0; }
+}
 
 /* rocket send: a new question lifts into the chat with a little flame trail */
 .vesta-rocket {
@@ -1067,8 +1154,10 @@ body.vesta-dragging {
 
 @media (prefers-reduced-motion: reduce) {
   .vf-pupil { transform: none; transition: none; }
-  .vf-glint, .vf-shades.is-drop { animation: none !important; }
-  .vf-shades, .vf-mouth, .vf-eye { transition: none; }
+  .vf-glint, .vf-glasses.is-drop, .glasses-push .vf-glasses { animation: none !important; }
+  .vf-glasses, .vf-mouth, .vf-eye { transition: none; }
+  .vesta-hop, .vesta-wave, .vesta-hello, .mini-burst i { animation: none !important; }
+  .mini-burst { display: none; }
   .vf-hat, .vesta-scan, .decode-in, .num-glow, .stage-burn, .stage-done, .vesta-stamp > :first-child,
   .vesta-transmission::after, .transmission-tag, .hear-chip, .ignite-a, .ignite-b, .mic-live, .ask-selection,
   .achievement, .page-warp, .reveal-in, .vesta-face.is-listening .vf-glow {

@@ -927,7 +927,7 @@ export function Presenter() {
               <div className="text-center">
                 <span className="present-end-vesta relative mx-auto block h-[150px] w-[150px]" aria-hidden>
                   <Orb thinking={false} size={150} />
-                  <VestaFace mood="happy" level={level} shades="on" shadesDrop={1} />
+                  <VestaFace mood="happy" level={level} glasses="on" glassesDrop={1} />
                 </span>
                 <h2 className="mt-5 font-head text-5xl font-bold tracking-[0.08em] sm:text-7xl">HEARTH</h2>
                 <p className="mt-3 flex items-center justify-center gap-2 text-muted">

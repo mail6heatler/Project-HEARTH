@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { GET as factsGET } from "@/app/api/vesta/facts/route";
 import { clampRect, DEFAULT_RECT, expandRect, MIN_H, MIN_W, parseSaved, resizeRect, snapZone, TOP } from "@/components/vesta/windowGeometry";
 import { fmt, spaceFireFacts } from "@/lib/vesta/facts";
-import { moodFor, shadesFor } from "@/lib/vesta/mood";
+import { glassesFor, GREET_MS, greetingLine, MAX_NUDGES, moodFor, NUDGE_EVERY_MS } from "@/lib/vesta/mood";
 import { runTool } from "@/lib/vesta/tools";
 
 // ------------------------------------------------------------------ window geometry
@@ -63,11 +63,21 @@ describe("VESTA moods", () => {
   });
 
   it("keeps her sunglasses on when relaxed or pleased and pushes them up otherwise", () => {
-    expect(shadesFor("idle")).toBe("on");
-    expect(shadesFor("happy")).toBe("on");
-    expect(shadesFor("thinking")).toBe("up");
-    expect(shadesFor("worried")).toBe("up");
-    expect(shadesFor("alert")).toBe("up");
+    expect(glassesFor("idle")).toBe("on");
+    expect(glassesFor("happy")).toBe("on");
+    expect(glassesFor("thinking")).toBe("push");
+    expect(glassesFor("worried")).toBe("low");
+    expect(glassesFor("alert")).toBe("low");
+  });
+
+  it("says hello without numbers, and leads with a warning she already spotted", () => {
+    const hi = greetingLine(0, "Lunar rover");
+    expect(hi.title).toContain("VESTA");
+    expect(greetingLine(2, "Lunar rover").text).toContain("warning for Lunar rover");
+    expect(greetingLine(0, "ISS", true).title).not.toBe(hi.title);
+    for (const g of [hi, greetingLine(1, "ISS"), greetingLine(0, "ISS", true), greetingLine(3, "Moon base", true)]) expect(`${g.title} ${g.text}`).not.toMatch(/\d/);
+    expect(MAX_NUDGES).toBeGreaterThan(0);
+    expect(NUDGE_EVERY_MS).toBeGreaterThan(GREET_MS);
   });
 });
 

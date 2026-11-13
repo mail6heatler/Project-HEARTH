@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useId, useRef } from "react";
 import type { Level } from "@/lib/store";
-import { MOOD_LABEL, shadesFor, type Mood, type Shades } from "@/lib/vesta/mood";
+import { glassesFor, MOOD_LABEL, type Glasses, type Mood } from "@/lib/vesta/mood";
 
 /** The presentation's pretend cursor announces where it is with this event, so VESTA's eyes can follow it too. */
 export const LOOK_EVENT = "hearth:look";
@@ -84,66 +84,71 @@ function Outfit({ level }: { level: Level }) {
   );
 }
 
-const LENS_L = "M11 6 H45 Q47.5 6 47 9 L44.5 25 Q43.5 32 36 32 H21 Q13.5 32 12.5 25 L9 9 Q8.5 6 11 6 Z";
-const LENS_R = "M89 6 H55 Q52.5 6 53 9 L55.5 25 Q56.5 32 64 32 H79 Q86.5 32 87.5 25 L91 9 Q91.5 6 89 6 Z";
+const LENS_L = "M17 6 H39 Q46 6 46 13 V25 Q46 33 38 33 H18 Q9 33 9 25 V13 Q9 6 17 6 Z";
+const LENS_R = "M61 6 H83 Q91 6 91 13 V25 Q91 33 82 33 H62 Q54 33 54 25 V13 Q54 6 61 6 Z";
 
-/** See-through sunglasses: tinted lenses (her eyes stay visible), a dark frame and a glint that sweeps across. */
-function Sunglasses({ drop = false }: { drop?: boolean }) {
+/**
+ * Nerdy glasses: thick dark frames, tape round the bridge and clear lenses (her eyes always show) with a
+ * little shine and a glint that sweeps across now and then.
+ */
+function NerdGlasses({ drop = false }: { drop?: boolean }) {
   const id = useId().replace(/:/g, "");
   return (
-    <svg className={`vf-shades ${drop ? "is-drop" : ""}`} viewBox="0 0 100 36" aria-hidden>
+    <svg className={`vf-glasses ${drop ? "is-drop" : ""}`} viewBox="0 0 100 40" aria-hidden>
       <defs>
-        <linearGradient id={`${id}t`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#04060d" stopOpacity="0.66" />
-          <stop offset="1" stopColor="#04060d" stopOpacity="0.22" />
-        </linearGradient>
         <clipPath id={`${id}c`}>
           <path d={LENS_L} />
           <path d={LENS_R} />
         </clipPath>
       </defs>
-      <path d="M1 10 L10 8 M99 10 L90 8" stroke="#0b0f1a" strokeWidth="3.4" strokeLinecap="round" />
-      <path d="M46 10 Q50 6.5 54 10" stroke="#0b0f1a" strokeWidth="3.4" fill="none" strokeLinecap="round" />
-      <path d={LENS_L} fill={`url(#${id}t)`} stroke="#0b0f1a" strokeWidth="2.8" />
-      <path d={LENS_R} fill={`url(#${id}t)`} stroke="#0b0f1a" strokeWidth="2.8" />
+      <path d="M9 12 L1 10 M91 12 L99 10" stroke="#15121c" strokeWidth="4" strokeLinecap="round" />
+      <path d={LENS_L} fill="rgba(190,225,255,0.2)" stroke="#15121c" strokeWidth="5" />
+      <path d={LENS_R} fill="rgba(190,225,255,0.2)" stroke="#15121c" strokeWidth="5" />
+      <path d="M46 15 Q50 11 54 15" stroke="#15121c" strokeWidth="5" fill="none" />
+      {/* tape round the bridge */}
+      <rect x="45.6" y="9" width="8.8" height="9.5" rx="1.6" fill="#f6f2e6" stroke="#bdb5a0" strokeWidth="0.8" />
+      <path d="M47.6 10.5 V17 M50 10.5 V17 M52.4 10.5 V17" stroke="#d8d0bb" strokeWidth="0.7" />
       <g clipPath={`url(#${id}c)`}>
-        <g transform="rotate(22 50 18)">
-          <rect className="vf-glint" x="-26" y="-30" width="9" height="96" fill="rgba(255,255,255,0.6)" />
+        <path d="M14 22 L22 10 M18 25 L28 11 M59 22 L67 10 M63 25 L73 11" stroke="rgba(255,255,255,0.45)" strokeWidth="1.6" strokeLinecap="round" />
+        <g transform="rotate(22 50 20)">
+          <rect className="vf-glint" x="-26" y="-30" width="9" height="100" fill="rgba(255,255,255,0.55)" />
         </g>
       </g>
-      <path d="M14 8.5 Q28 7 42 8.5 M58 8.5 Q72 7 86 8.5" stroke="rgba(255,255,255,0.4)" strokeWidth="1.3" fill="none" strokeLinecap="round" />
     </svg>
   );
 }
 
 /**
- * VESTA's face over her orb: clear eyes that blink and look around, a mouth for each mood, sunglasses and a hat
- * per level. Decoration only: the mood mirrors real events (tools running, the confidence tag, a mission warning)
- * and never replaces the tag itself. `shadesDrop` replays the shades landing on her nose (a new value each time).
+ * VESTA's face over her orb: clear eyes that blink and look around, a mouth for each mood, freckles, nerdy
+ * glasses and a hat per level. Decoration only: the mood mirrors real events (tools running, the confidence tag,
+ * a mission warning) and never replaces the tag itself. `glassesDrop` replays her putting the glasses on (a new
+ * value each time).
  */
 export function VestaFace({
   mood,
   level,
   listening = false,
   follow = true,
-  shades,
-  shadesDrop,
+  glasses,
+  glassesDrop,
   className = "",
 }: {
   mood: Mood;
   level?: Level;
   listening?: boolean;
   follow?: boolean;
-  shades?: Shades;
-  shadesDrop?: number;
+  glasses?: Glasses;
+  glassesDrop?: number;
   className?: string;
 }) {
   const ref = useRef<HTMLSpanElement>(null);
   useLookAt(ref, follow);
-  const sh = shades ?? shadesFor(mood);
+  const gl = glasses ?? glassesFor(mood);
   return (
-    <span ref={ref} className={`vesta-face mood-${mood} shades-${sh} ${listening ? "is-listening" : ""} ${className}`} aria-hidden>
+    <span ref={ref} className={`vesta-face mood-${mood} glasses-${gl} ${listening ? "is-listening" : ""} ${className}`} aria-hidden>
       <span className="vf-rim" />
+      <span className="vf-freckles l" />
+      <span className="vf-freckles r" />
       {mood === "happy" ? (
         <>
           <span className="vf-arc l" />
@@ -168,7 +173,7 @@ export function VestaFace({
         </>
       )}
       <span className="vf-mouth" />
-      {sh !== "off" && <Sunglasses key={shadesDrop ?? "shades"} drop={shadesDrop != null} />}
+      {gl !== "off" && <NerdGlasses key={glassesDrop ?? "glasses"} drop={glassesDrop != null} />}
       {mood === "thinking" && (
         <span className="vf-orbit">
           <i />
@@ -182,25 +187,67 @@ export function VestaFace({
   );
 }
 
-/** VESTA hidden into a little floating orb (desktop). Click to bring the chat back. */
-export function MiniVesta({ mood, level, unseen, missionName, onOpen }: { mood: Mood; level: Level; unseen: number; missionName: string; onOpen: () => void }) {
+/**
+ * VESTA as a little floating orb (desktop; how every visit starts). Click to open the chat. `greet` makes her
+ * say hello (a jump, a wave and a speech bubble); each new `hop` value makes her jump, e.g. for a new warning.
+ */
+export function MiniVesta({
+  mood,
+  level,
+  unseen,
+  missionName,
+  greet,
+  hop,
+  onOpen,
+}: {
+  mood: Mood;
+  level: Level;
+  unseen: number;
+  missionName: string;
+  greet: { key: number; title: string; text: string } | null;
+  hop: number;
+  onOpen: () => void;
+}) {
   const label = unseen ? `Open VESTA (${unseen} new ${unseen === 1 ? "warning" : "warnings"})` : "Open VESTA";
   return (
-    <div className="vesta-mini-wrap fixed bottom-6 right-6 z-[35] hidden items-center gap-3 vesta:flex">
-      {unseen > 0 && (
-        <span className="animate-fadeUp rounded-xl rounded-br-sm border border-[#2c3b5e] bg-raised px-3 py-2 text-xs text-text shadow-[0_10px_24px_rgba(0,0,0,0.5)]">
-          Psst, a new warning for {missionName}
-        </span>
+    <div className="vesta-mini-wrap fixed bottom-6 right-6 z-[35] hidden items-end gap-3 vesta:flex">
+      {greet ? (
+        <button key={greet.key} type="button" onClick={onOpen} className="vesta-hello mb-6 max-w-[230px] rounded-2xl rounded-br-sm border border-ember/50 bg-raised px-3.5 py-2.5 text-left shadow-[0_12px_30px_rgba(0,0,0,0.55),0_0_18px_rgb(var(--ember-rgb)/0.25)]">
+          <span className="block font-head text-sm font-bold text-text">{greet.title}</span>
+          <span className="mt-0.5 block text-xs leading-snug text-muted">{greet.text}</span>
+        </button>
+      ) : (
+        unseen > 0 && (
+          <span className="mb-6 animate-fadeUp rounded-xl rounded-br-sm border border-[#2c3b5e] bg-raised px-3 py-2 text-xs text-text shadow-[0_10px_24px_rgba(0,0,0,0.5)]">
+            Psst, a new warning for {missionName}
+          </span>
+        )
       )}
-      <button type="button" onClick={onOpen} aria-label={label} title={`VESTA is ${MOOD_LABEL[mood]}`} className="vesta-mini relative h-[72px] w-[72px] rounded-full">
-        <span className={`vesta-mini-body mood-${mood}`} aria-hidden />
-        <VestaFace mood={mood} level={level} />
-        {unseen > 0 && (
-          <span className="absolute right-0 top-0 grid h-[18px] min-w-[18px] place-items-center rounded-full border-2 border-bg bg-bad px-1 font-mono text-[10px] font-bold text-bg" aria-hidden>
-            {unseen}
+      <div className="relative">
+        {greet && (
+          <span key={greet.key} className="vesta-wave pointer-events-none absolute -left-5 -top-3 z-10 text-[26px] leading-none" aria-hidden>
+            👋
           </span>
         )}
-      </button>
+        {greet && (
+          <span key={`b${greet.key}`} className="mini-burst pointer-events-none absolute left-1/2 top-1/2" aria-hidden>
+            {Array.from({ length: 10 }, (_, i) => (
+              <i key={i} style={{ "--a": `${i * 36}deg` } as React.CSSProperties} />
+            ))}
+          </span>
+        )}
+        <button id="vesta-mini" type="button" onClick={onOpen} aria-label={label} title={`VESTA is ${MOOD_LABEL[mood]}`} className="vesta-mini relative block h-[72px] w-[72px] rounded-full">
+          <span key={hop} className={`absolute inset-0 rounded-full ${hop ? "vesta-hop" : ""}`}>
+            <span className={`vesta-mini-body mood-${mood}`} aria-hidden />
+            <VestaFace mood={greet ? "happy" : mood} level={level} />
+          </span>
+          {unseen > 0 && (
+            <span className="absolute right-0 top-0 grid h-[18px] min-w-[18px] place-items-center rounded-full border-2 border-bg bg-bad px-1 font-mono text-[10px] font-bold text-bg" aria-hidden>
+              {unseen}
+            </span>
+          )}
+        </button>
+      </div>
     </div>
   );
 }

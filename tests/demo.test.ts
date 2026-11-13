@@ -1,9 +1,41 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { alignWords, buildCues, chapterAt, clock, cueAt, encodeWav, formatBytes, parseManifest, steer, toVtt, wavMs, wordAt, type DemoManifest } from "@/lib/presenter/demo";
+import { alignWords, buildCues, chapterAt, clock, cueAt, downloadName, encodeWav, formatBytes, isReadyMade, parseManifest, steer, toSrt, toVtt, wavMs, wordAt, wrapWords, type DemoManifest } from "@/lib/presenter/demo";
 import { phrases } from "@/lib/presenter/motion";
 import { CHAPTERS } from "@/lib/presenter/script";
+
+describe("recorded demo: downloads with the viewer's choices", () => {
+  it("serves the recorded file only when it already is what was asked for", () => {
+    expect(isReadyMade({ voice: true, music: true, subtitles: false })).toBe(true);
+    expect(isReadyMade({ voice: true, music: true, subtitles: true })).toBe(false);
+    expect(isReadyMade({ voice: false, music: true, subtitles: false })).toBe(false);
+  });
+
+  it("names each copy after what is in it", () => {
+    expect(downloadName({ voice: true, music: true, subtitles: false })).toBe("HEARTH-by-Team-Polaris.mp4");
+    expect(downloadName({ voice: true, music: true, subtitles: true }, "webm")).toBe("HEARTH-by-Team-Polaris-subtitles.webm");
+    expect(downloadName({ voice: true, music: false, subtitles: true })).toBe("HEARTH-by-Team-Polaris-subtitles-no-music.mp4");
+    expect(downloadName({ voice: false, music: true, subtitles: false })).toBe("HEARTH-by-Team-Polaris-no-voice.mp4");
+    expect(downloadName({ voice: false, music: false, subtitles: true })).toBe("HEARTH-by-Team-Polaris-subtitles-no-sound.mp4");
+  });
+
+  it("writes SubRip subtitles with comma milliseconds", () => {
+    const srt = toSrt([
+      { start: 0.465, end: 2.472, text: "Team Polaris presents HEARTH:", words: [] },
+      { start: 62.5, end: 65, text: "Next line", words: [] },
+    ]);
+    expect(srt.split("\n").slice(0, 4)).toEqual(["1", "00:00:00,465 --> 00:00:02,472", "Team Polaris presents HEARTH:", ""]);
+    expect(srt).toContain("00:01:02,500 --> 00:01:05,000");
+  });
+
+  it("wraps subtitle words into lines that fit", () => {
+    const measure = (s: string) => s.length * 10;
+    expect(wrapWords(["Ask", "VESTA", "in", "plain", "words."], measure, 120)).toEqual([["Ask", "VESTA", "in"], ["plain", "words."]]);
+    expect(wrapWords(["a-very-long-word-indeed", "ok"], measure, 50)).toEqual([["a-very-long-word-indeed"], ["ok"]]);
+    expect(wrapWords([], measure, 50)).toEqual([]);
+  });
+});
 
 describe("recorded demo: lining the voice up with the words", () => {
   it("gives every word a start time from the voice's word reports", () => {

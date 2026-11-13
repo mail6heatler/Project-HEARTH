@@ -24,12 +24,30 @@ export function moodFor(busy: boolean, last?: MoodInput): Mood {
   return "idle";
 }
 
-/** Where VESTA's sunglasses sit: "on" covers her eyes (see-through), "up" rests them on her forehead. */
-export type Shades = "on" | "up" | "off";
+/**
+ * VESTA's nerdy glasses (clear lenses: her eyes always show). "on" sits on her eyes, "push" is her pushing
+ * them up her nose as she starts thinking, "low" has them slid down so she peers over them.
+ */
+export type Glasses = "on" | "push" | "low" | "off";
 
-/** Shades stay on while she is relaxed or pleased; she pushes them up to think, to worry and for a warning. */
-export function shadesFor(mood: Mood): Shades {
-  return mood === "idle" || mood === "happy" ? "on" : "up";
+/** Glasses on while relaxed or pleased; pushed up to think; slid down her nose when worried or warning. */
+export function glassesFor(mood: Mood): Glasses {
+  if (mood === "thinking") return "push";
+  if (mood === "worried" || mood === "alert") return "low";
+  return "on";
+}
+
+/** How long mini VESTA's hello (jump, wave and bubble) stays up. */
+export const GREET_MS = 7000;
+/** Until a visitor has opened her once, mini VESTA hops and waves again this often, a few times per visit. */
+export const NUDGE_EVERY_MS = 22_000;
+export const MAX_NUDGES = 3;
+
+/** What mini VESTA says when she says hello: a warning she already spotted comes first. No numbers. */
+export function greetingLine(warnings: number, missionShort: string, nudge = false): { title: string; text: string } {
+  if (warnings > 0) return { title: nudge ? "Still here!" : "Hi, I'm VESTA!", text: `I spotted a warning for ${missionShort}. Click me to see it.` };
+  if (nudge) return { title: "Psst, need a hand?", text: "Ask me anything about fire safety." };
+  return { title: "Hi, I'm VESTA!", text: "Your AI fire-safety crewmate. Click me to ask anything." };
 }
 
 /** How long a reaction stays on VESTA's face before she relaxes back to idle. */

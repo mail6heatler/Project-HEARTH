@@ -8,6 +8,20 @@
 
 ## Log
 
+### Nerdy VESTA, mini by default with a hello, downloads with choices (2026-11-13, at the user's request)
+**Done**
+- Nerdy look instead of sunglasses: thick dark glasses with tape on the bridge and clear lenses (eyes always visible), freckles, buck teeth; glasses pushed up her nose when she starts thinking, slid down so she peers over them when worried or alerted (`glassesFor`). Stage VESTA lands and puts her glasses on: "Glasses on. Let's check the data."
+- Every visit starts with mini VESTA. After the launch screen and the tour she jumps, waves (👋) and says hello in a bubble (a warning she spotted comes first), with a spark burst; until she has been opened once she nudges again (every 22 s, 3 times); a new warning makes her hop. Page buttons that ask VESTA open her. Tour step 3 points at mini VESTA (and its card no longer covers a target near the bottom).
+- Video download panel: Voice / Music and sound effects / Subtitles, preset from the player. The full mix downloads at once; any other mix is made in the browser in real time (canvas 30 fps, subtitles drawn word by word, chosen tracks via Web Audio, MP4 in Chrome), with progress, time left and Stop; plus a `.srt` subtitles file.
+- Checked in headless Chrome: fresh visit (launch → tour → hello in that order), page button opens mini VESTA, glasses close-ups, a made copy (voice, no music, subtitles): 98 s, 1080p H.264 + AAC at the voice track's loudness, subtitles in the picture. 6 new tests.
+
+**Decisions**
+- The window key moved to v2 so every browser (including the team's) starts with mini VESTA once.
+- Custom copies are made in the viewer's browser (no new dependency, nothing stored on the server); only the full mix is a ready file.
+
+**Problems**
+- Headless Chrome drew only about 17 frames/s while making a copy (software rendering); copies are now drawn at a steady 30 fps.
+
 ### VESTA takes the stage + her new face (2026-11-13, at the user's request: "go" on the plan)
 **Done**
 - New face: calm ember orb (no white-hot centre, about half the glow, thin mood rim), white eyes with pupils that follow the mouse or the presenter's cursor, a mouth per mood, blush when happy, see-through sunglasses with a glint (on when idle/happy, up on her forehead when thinking/worried/alerted, `shadesFor`). Researcher goggles became a headset so nothing but the shades covers her eyes. Same face in the panel, mini VESTA, the big stage VESTA and the end card.

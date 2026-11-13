@@ -80,7 +80,7 @@ export const CHAPTERS: Chapter[] = [
     title: "Ask VESTA",
     say: "Ask VESTA in plain words. She flies in, checks the NASA data with her tools, cites every source, and tags how sure she is.",
     actions: [
-      { do: "vestaStage", hello: "Shades on. Let's check the data." },
+      { do: "vestaStage", hello: "Glasses on. Let's check the data." },
       { do: "ask", text: "Is my rover cabin inside the tested data?" },
       { do: "waitVesta" },
       { do: "spot", on: LAST_ANSWER, pad: 4 },
