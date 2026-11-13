@@ -6,7 +6,7 @@
 import { convertPressure, type PressureUnit } from "@/lib/physics";
 import type { Investigation } from "@/lib/types";
 
-export type Intent = "help" | "explain_test" | "compare" | "gaps" | "rank" | "safety" | "calc" | "assess" | "explain_topic" | "unknown";
+export type Intent = "help" | "explain_test" | "chart" | "compare" | "gaps" | "rank" | "safety" | "calc" | "assess" | "explain_topic" | "unknown";
 
 export interface Parsed {
   o2_pct?: number;
@@ -54,6 +54,7 @@ export function detectIntent(msg: string, p: Parsed = parseMessage(msg)): Intent
   const t = msg.toLowerCase().trim();
   if (!t || /^(help|\?|what can you do|hi|hello|hey)\b/.test(t)) return "help";
   if (p.test_ids.length) return "explain_test";
+  if (/\b(chart|plot|graph|scatter|visuali[sz]e)\b/.test(t)) return "chart";
   const comparing = /\bcompar|\bversus\b|\bvs\.?\b|differen/.test(t);
   if ((comparing && (p.investigations.length >= 1 || /investigation|experiment/.test(t))) || p.investigations.length >= 2) return "compare";
   if (/\bgaps?\b|missing|untested|(not|never) (been )?tested|no data|lack/.test(t)) return "gaps";

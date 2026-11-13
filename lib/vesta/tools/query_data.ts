@@ -20,7 +20,21 @@ export const queryDataInput = z.object({
   group_by: z.enum(GROUPS).optional().describe("Return counts and condition ranges per group"),
   sort: z.string().optional().describe("Field to sort by, prefix '-' for descending, e.g. '-o2_pct'"),
   limit: z.number().int().min(1).max(50).optional().describe("Rows to return (default 8)"),
+  points: z.boolean().optional().describe("Also return every distinct O2 × pressure condition of the matching tests with its test count (for scatter charts)"),
 });
+
+/** Each distinct (investigation, O2, pressure) condition once, with how many tests ran at it. Rows missing either value are left out. */
+export function conditionPoints(ts: TestRecord[]): { investigation: string; o2_pct: number; pressure_psi: number; n: number }[] {
+  const m = new Map<string, { investigation: string; o2_pct: number; pressure_psi: number; n: number }>();
+  for (const t of ts) {
+    if (t.o2_pct == null || t.pressure_psi == null) continue;
+    const k = `${t.investigation}|${t.o2_pct}|${t.pressure_psi}`;
+    const p = m.get(k);
+    if (p) p.n++;
+    else m.set(k, { investigation: t.investigation, o2_pct: t.o2_pct, pressure_psi: t.pressure_psi, n: 1 });
+  }
+  return [...m.values()].sort((a, b) => a.investigation.localeCompare(b.investigation) || a.pressure_psi - b.pressure_psi || a.o2_pct - b.o2_pct);
+}
 
 function condStats(ts: TestRecord[]) {
   return {
@@ -33,7 +47,7 @@ function condStats(ts: TestRecord[]) {
 export const queryData = defineTool({
   name: "query_data",
   description:
-    "Filter and aggregate the NASA test table (ACME, CFI, SPICE). Returns matching rows (with source file + row), totals, O2/pressure/flow statistics and optional per-group counts. Duplicate rows are excluded.",
+    "Filter and aggregate the NASA test table (ACME, CFI, SPICE). Returns matching rows (with source file + row), totals, O2/pressure/flow statistics, optional per-group counts and, with points: true, every distinct O2 × pressure condition with its test count. Duplicate rows are excluded.",
   input: queryDataInput,
   run(input) {
     const rows = sortTests(filterTests(input), input.sort ?? "test_id");
@@ -55,11 +69,12 @@ export const queryData = defineTool({
         ...condStats(rows),
         key_metric: stats(rows.map((t) => t.key_metric_value)),
         groups,
+        points: input.points ? conditionPoints(rows) : undefined,
         rows: rows.slice(0, limit).map(compact),
       },
       sources: sourcesFor(rows),
       confidence: rows.length ? "supported" : "no_data",
-      summary: `${rows.length} matching tests${groups ? ` in ${groups.length} groups` : ""}`,
+      summary: `${rows.length} matching tests${groups ? ` in ${groups.length} groups` : ""}${input.points ? " with their conditions" : ""}`,
     };
   },
 });

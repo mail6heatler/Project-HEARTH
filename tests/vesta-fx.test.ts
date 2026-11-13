@@ -65,6 +65,7 @@ describe("slash commands", () => {
     expect(parseCommand("/skin mars")).toEqual({ kind: "skin", skin: "mars" });
     expect(parseCommand("/skin purple")).toBeNull();
     expect(parseCommand("/warp")).toEqual({ kind: "warp" });
+    expect(parseCommand("/chart")).toEqual({ kind: "ask", question: "Plot O2 against pressure for every test." });
     expect(parseCommand("/nope")).toBeNull();
     expect(parseCommand("not a command")).toBeNull();
   });

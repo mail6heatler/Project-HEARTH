@@ -54,6 +54,7 @@ async function call(c: Ctx, name: string, args: unknown): Promise<ToolResult> {
 const HELP =
   "I'm in Offline mode (no AI model), so I answer a fixed set of questions with the same NASA data tools:\n" +
   "• Assess conditions: \"Is 34% O2 at 8.2 psi tested?\" or \"What is pO2 at 30% and 10.2 psi?\"\n" +
+  "• Chart: \"Plot O2 against pressure for every test\"\n" +
   "• Compare: \"Compare ACME and SPICE\"\n" +
   "• Gaps: \"What data is missing for the lunar rover?\"\n" +
   "• Rank: \"Which investigation is most relevant for the Moon base?\"\n" +
@@ -176,6 +177,40 @@ async function compare(c: Ctx, p: Parsed): Promise<string[]> {
   return out;
 }
 
+/** A scatter chart of every tested O2 × pressure condition, with the mission's own conditions marked. */
+async function chart(c: Ctx, p: Parsed): Promise<string[]> {
+  const invs = p.investigations.length ? p.investigations : (["ACME", "CFI", "SPICE"] as Investigation[]);
+  // the mission first, so the answer's first sources are the tests around its cabin
+  const m = getMission(p.mission ?? c.missionId);
+  const env = m
+    ? ((await call(c, "envelope_check", { mission: m.id })).data as { target: { o2_pct: number; pressure_psi: number }; status: string; count: number })
+    : null;
+  const r = (await call(c, "query_data", { investigation: invs, group_by: "investigation", points: true, limit: 1 })).data as {
+    total: number;
+    groups?: { key: string; n: number }[];
+    points?: { investigation: string; o2_pct: number; pressure_psi: number; n: number }[];
+  };
+  const pts = r.points ?? [];
+  if (!pts.length) {
+    c.conf.push("no_data");
+    return ["No matching tests have both O2 and pressure recorded, so there is nothing to plot."];
+  }
+  const series: { name: string; points: number[][]; highlight?: boolean }[] = invs
+    .map((inv) => ({ name: inv, points: pts.filter((q) => q.investigation === inv).map((q) => [q.pressure_psi, q.o2_pct]) }))
+    .filter((s) => s.points.length);
+  const by = (r.groups ?? []).map((g) => `${g.key} ${g.n}`).join(", ");
+  const out = [`Every ${invs.join(", ")} test with O2 and pressure recorded: ${r.total} tests${by ? ` (${by})` : ""}, one dot per distinct condition, pressure across, O2 up.`];
+  if (m && env) {
+    series.push({ name: `${m.short} cabin`, points: [[env.target.pressure_psi, env.target.o2_pct]], highlight: true });
+    out.push(`The diamond is the ${m.name} cabin (${env.target.o2_pct}% O2, ${env.target.pressure_psi} psi): ${env.count} tests lie within ±5 points O2 and ±2.5 psi, so its envelope is ${env.status.replace("_", " ")}.`);
+  }
+  await call(c, "make_chart", {
+    type: "scatter", title: "NASA tests: O2 vs pressure", x_label: "Pressure (psi)", y_label: "O2 (%)", series,
+    source_note: "query_data: one dot per distinct tested condition",
+  });
+  return out;
+}
+
 async function gaps(c: Ctx, p: Parsed): Promise<string[]> {
   const m = getMission(p.mission ?? c.missionId);
   const g = (await call(c, "gap_finder", { mission: m?.id })).data as {
@@ -264,6 +299,9 @@ export async function runOffline(input: { message: string; missionId?: string; l
       break;
     case "explain_test":
       lines = await explainTest(c, p);
+      break;
+    case "chart":
+      lines = await chart(c, p);
       break;
     case "compare":
       lines = await compare(c, p);

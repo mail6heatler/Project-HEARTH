@@ -157,7 +157,7 @@ export function VestaMessageView({ m }: { m: VestaMessage }) {
       <ToolLog steps={m.steps} pending={m.pending} />
       {m.charts.map((c) => (
         <figure key={c.id} className="my-2 rounded-md border border-line bg-bg p-2">
-          <EChart option={c.option} height={220} ariaLabel={`Chart: ${c.title}`} />
+          <EChart option={c.option} height={c.type === "scatter" ? 290 : 220} ariaLabel={`Chart: ${c.title}`} />
           <figcaption className="mt-1 flex items-center justify-between gap-2 text-[10px] text-muted">
             <span>{c.source_note ?? "Data from VESTA tool results"}</span>
             <button type="button" onClick={() => pin(c)} className="flex shrink-0 items-center gap-1 rounded border border-line px-1.5 py-0.5 hover:border-ember hover:text-text">

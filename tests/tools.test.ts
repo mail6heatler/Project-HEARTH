@@ -37,6 +37,26 @@ describe("data tools", () => {
     expect(r.sources[0].row).toBeGreaterThan(1);
   });
 
+  it("query_data can list every distinct O2 × pressure condition with its test count", async () => {
+    const r = await runTool("query_data", { points: true, limit: 1 });
+    const d = r.data as { total: number; points: { investigation: string; o2_pct: number; pressure_psi: number; n: number }[] };
+    expect(d.points.length).toBeGreaterThan(0);
+    // every counted test is in exactly one point (all tests have both values recorded)
+    expect(d.points.reduce((s, p) => s + p.n, 0)).toBe(d.total);
+    const keys = d.points.map((p) => `${p.investigation}|${p.o2_pct}|${p.pressure_psi}`);
+    expect(new Set(keys).size).toBe(keys.length);
+    expect((await runTool("query_data", { limit: 1 })).data).not.toHaveProperty("points", expect.anything());
+  });
+
+  it("make_chart draws a highlighted series as a big labelled marker", async () => {
+    const r = await runTool("make_chart", { type: "scatter", title: "x", series: [{ name: "CFI", points: [[1, 2]] }, { name: "Cabin", points: [[3, 4]], highlight: true }] });
+    const s = (r.data as { chart: { option: { series: { symbol?: string; symbolSize: number; label?: { show: boolean }; itemStyle?: { color: string } }[] } } }).chart.option.series;
+    expect(s[0].itemStyle?.color).toBe("#A78BFA");
+    expect(s[1].symbol).toBe("diamond");
+    expect(s[1].symbolSize).toBeGreaterThan(s[0].symbolSize);
+    expect(s[1].label?.show).toBe(true);
+  });
+
   it("every successful tool result carries at least one source", async () => {
     const calls: [string, unknown][] = [
       ["query_data", {}],

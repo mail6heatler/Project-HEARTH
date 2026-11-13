@@ -1,13 +1,27 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useHearth } from "@/lib/store";
 import { clampRect, DEFAULT_RECT, DRAG_START_PX, expandRect, parseSaved, resizeRect, snapZone, TOP, type Dock, type Edge, type Rect, type WinMode } from "./windowGeometry";
 
 const KEY = "hearth.vesta-window.v1";
 const DESKTOP = "(min-width: 1180px)";
 const ANIM_OUT_MS = 360;
 const ANIM_IN_MS = 650;
+const ANIM_UNFOLD_MS = 700;
 /** Elements inside the header that keep their own click behaviour instead of starting a drag. */
 const NO_DRAG = "button, a, input, textarea, select, label, [role='radio'], [role='radiogroup'], [data-no-drag]";
+
+/** The presentation moves VESTA's window with this event (see `commandVestaWindow`). */
+export const WINDOW_EVENT = "hearth:vesta-window";
+export type WindowAnim = "in" | "out" | "pop" | "unfold";
+export type WindowCommand =
+  | { type: "set"; hidden?: boolean; expanded?: boolean; dock?: Dock; anim?: WindowAnim }
+  /** Back to what the visitor had (read from storage, which is not written while presenting). */
+  | { type: "restore" };
+
+export function commandVestaWindow(cmd: WindowCommand) {
+  window.dispatchEvent(new CustomEvent<WindowCommand>(WINDOW_EVENT, { detail: cmd }));
+}
 
 function reducedMotion(): boolean {
   return typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -25,7 +39,7 @@ export function useVestaWindow(panelRef: React.RefObject<HTMLElement>) {
   const [hidden, setHidden] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [rect, setRect] = useState<Rect>(DEFAULT_RECT);
-  const [anim, setAnim] = useState<"in" | "out" | "pop" | null>(null);
+  const [anim, setAnim] = useState<WindowAnim | null>(null);
   const [zone, setZone] = useState<"left" | "right" | null>(null);
   const [dragging, setDragging] = useState(false);
   const loaded = useRef(false);
@@ -63,7 +77,8 @@ export function useVestaWindow(panelRef: React.RefObject<HTMLElement>) {
   }, []);
 
   useEffect(() => {
-    if (!loaded.current || dragging) return;
+    // the presentation's moves are never remembered as the visitor's own
+    if (!loaded.current || dragging || useHearth.getState().presenting) return;
     try {
       window.localStorage.setItem(KEY, JSON.stringify({ dock, hidden, rect }));
     } catch {
@@ -81,7 +96,7 @@ export function useVestaWindow(panelRef: React.RefObject<HTMLElement>) {
     return () => window.removeEventListener("keydown", onKey);
   }, [expanded]);
 
-  const play = useCallback((a: "in" | "out" | "pop", ms: number, then?: () => void) => {
+  const play = useCallback((a: WindowAnim, ms: number, then?: () => void) => {
     if (timer.current) clearTimeout(timer.current);
     if (reducedMotion()) {
       setAnim(null);
@@ -94,6 +109,45 @@ export function useVestaWindow(panelRef: React.RefObject<HTMLElement>) {
       then?.();
     }, ms);
   }, []);
+
+  // commands from the presentation
+  useEffect(() => {
+    const onCmd = (e: Event) => {
+      const c = (e as CustomEvent<WindowCommand>).detail;
+      if (!c) return;
+      if (c.type === "restore") {
+        let saved: ReturnType<typeof parseSaved> = null;
+        try {
+          saved = parseSaved(window.localStorage.getItem(KEY));
+        } catch {
+          saved = null;
+        }
+        if (timer.current) clearTimeout(timer.current);
+        setAnim(null);
+        setExpanded(false);
+        setDock(saved?.dock ?? "right");
+        setHidden(saved?.hidden ?? false);
+        return;
+      }
+      const apply = () => {
+        if (c.dock) setDock(c.dock);
+        if (c.expanded !== undefined) setExpanded(c.expanded);
+        if (c.hidden !== undefined) setHidden(c.hidden);
+      };
+      if (c.anim === "out") {
+        play("out", ANIM_OUT_MS, apply);
+        return;
+      }
+      apply();
+      if (c.anim) play(c.anim, c.anim === "unfold" ? ANIM_UNFOLD_MS : c.anim === "in" ? ANIM_IN_MS : 400);
+      else {
+        if (timer.current) clearTimeout(timer.current);
+        setAnim(null);
+      }
+    };
+    window.addEventListener(WINDOW_EVENT, onCmd);
+    return () => window.removeEventListener(WINDOW_EVENT, onCmd);
+  }, [play]);
 
   const mode: WinMode = !isDesktop ? "right" : hidden ? "hidden" : expanded ? "expand" : dock;
 

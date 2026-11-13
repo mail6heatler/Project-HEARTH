@@ -24,6 +24,14 @@ export function moodFor(busy: boolean, last?: MoodInput): Mood {
   return "idle";
 }
 
+/** Where VESTA's sunglasses sit: "on" covers her eyes (see-through), "up" rests them on her forehead. */
+export type Shades = "on" | "up" | "off";
+
+/** Shades stay on while she is relaxed or pleased; she pushes them up to think, to worry and for a warning. */
+export function shadesFor(mood: Mood): Shades {
+  return mood === "idle" || mood === "happy" ? "on" : "up";
+}
+
 /** How long a reaction stays on VESTA's face before she relaxes back to idle. */
 export const MOOD_HOLD_MS = 12_000;
 

@@ -445,64 +445,172 @@ body.vesta-dragging {
   50% { box-shadow: inset 0 0 50px rgb(var(--ember-rgb) / 0.45); }
 }
 
-/* VESTA's face over her orb */
+/* VESTA's face over her orb. Sizes are shares of the face (cqw), so the same face works from the 58 px header
+   to the big presentation VESTA. The orb behind is a calm ember, so dark-outlined white eyes always read. */
 .vesta-face {
   position: absolute;
   inset: 0;
   border-radius: 999px;
   pointer-events: none;
+  container-type: size;
   --mood: var(--ember);
+  --ink: #2b0d02;
 }
 .vesta-face.mood-thinking { --mood: #ffe2cc; }
 .vesta-face.mood-happy { --mood: var(--ok); }
 .vesta-face.mood-worried { --mood: var(--warn); }
 .vesta-face.mood-alert { --mood: var(--bad); }
-.vf-glow {
+/* the mood shows as a thin rim, not a halo over the face */
+.vf-rim {
   position: absolute;
-  inset: 8%;
+  inset: 9%;
   border-radius: 999px;
-  box-shadow: 0 0 16px 2px var(--mood), inset 0 0 10px var(--mood);
-  opacity: 0.55;
-  transition: box-shadow 0.5s;
+  box-shadow: 0 0 0 1.5px var(--mood), 0 0 9px var(--mood);
+  opacity: 0.6;
+  transition: box-shadow 0.5s, opacity 0.5s;
 }
-.vesta-face.mood-idle .vf-glow { opacity: 0; }
+.vesta-face.mood-idle .vf-rim { opacity: 0; }
+.vesta-mini .vf-rim { inset: 0; }
 .vf-eye {
   position: absolute;
   top: 38%;
-  width: 11%;
+  width: 15%;
   height: 18%;
   border-radius: 50%;
-  background: #2a0e02;
+  background: #fffaf4;
+  box-shadow: 0 0 0 2.6cqw var(--ink);
+  overflow: hidden;
   animation: vfBlink 4.2s infinite;
-  transition: top 0.4s;
+  transition: top 0.4s, transform 0.3s;
 }
-.vf-eye.l { left: 33%; }
-.vf-eye.r { right: 33%; }
-.mood-thinking .vf-eye { top: 30%; }
+.vf-eye.l { left: 29%; }
+.vf-eye.r { right: 29%; }
+.vf-pupil {
+  position: absolute;
+  left: 24%;
+  top: 22%;
+  width: 54%;
+  height: 58%;
+  border-radius: 50%;
+  background: #140602;
+  transform: translate(var(--lx, 0px), var(--ly, 0px));
+  transition: transform 0.18s ease-out, translate 0.4s, scale 0.3s;
+}
+/* a catchlight keeps the eyes alive */
+.vf-pupil::after {
+  content: "";
+  position: absolute;
+  right: 14%;
+  top: 14%;
+  width: 34%;
+  height: 34%;
+  border-radius: 50%;
+  background: #fff;
+}
+.mood-thinking .vf-pupil { translate: 0 -28%; }
+.mood-alert .vf-eye { scale: 1.14; }
+.mood-alert .vf-pupil { scale: 0.72; }
 @keyframes vfBlink {
   0%, 92%, 100% { transform: scaleY(1); }
   95% { transform: scaleY(0.1); }
 }
+/* happy: smiling ^ ^ eyes, light so they show through the shades */
 .vf-arc {
   position: absolute;
-  top: 40%;
-  width: 15%;
-  height: 9%;
-  border-top: 3px solid #12301f;
+  top: 45%;
+  width: 16%;
+  height: 11%;
+  border-top: 6cqw solid #fffaf4;
   border-radius: 50% 50% 0 0;
 }
-.vf-arc.l { left: 31%; }
-.vf-arc.r { right: 31%; }
+.vf-arc.l { left: 28.5%; }
+.vf-arc.r { right: 28.5%; }
+.vf-blush {
+  position: absolute;
+  top: 60%;
+  width: 13%;
+  height: 7%;
+  border-radius: 50%;
+  background: rgba(255, 93, 108, 0.5);
+  filter: blur(1px);
+}
+.vf-blush.l { left: 19%; }
+.vf-blush.r { right: 19%; }
 .vf-brow {
   position: absolute;
-  top: 29%;
+  top: 31%;
   width: 15%;
-  height: 2px;
-  border-radius: 2px;
-  background: #3a2400;
+  height: 4cqw;
+  border-radius: 4cqw;
+  background: var(--ink);
 }
-.vf-brow.l { left: 31%; transform: rotate(-14deg); }
-.vf-brow.r { right: 31%; transform: rotate(14deg); }
+.vf-brow.l { left: 29%; transform: rotate(-14deg); }
+.vf-brow.r { right: 29%; transform: rotate(14deg); }
+/* a mouth for each mood */
+.vf-mouth {
+  position: absolute;
+  left: 50%;
+  top: 66%;
+  width: 18%;
+  height: 7%;
+  translate: -50% 0;
+  border-bottom: 4cqw solid var(--ink);
+  border-radius: 0 0 999px 999px;
+  transition: all 0.3s;
+}
+.mood-happy .vf-mouth {
+  width: 26%;
+  height: 13%;
+  border: 0;
+  background: radial-gradient(ellipse at 50% 120%, #ff7a8a 0 32%, transparent 34%), var(--ink);
+}
+.mood-worried .vf-mouth {
+  top: 70%;
+  width: 16%;
+  height: 5%;
+  border-bottom: 0;
+  border-top: 4cqw solid var(--ink);
+  border-radius: 999px 999px 0 0;
+}
+.mood-alert .vf-mouth {
+  top: 67%;
+  width: 11%;
+  height: 12%;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink);
+}
+.mood-thinking .vf-mouth {
+  width: 12%;
+  height: 0;
+  border-bottom: 0;
+  border-top: 4cqw solid var(--ink);
+  translate: -20% 0;
+  rotate: -10deg;
+}
+/* see-through sunglasses: over her eyes when relaxed or pleased, up on her forehead to think or worry */
+.vf-shades {
+  position: absolute;
+  left: 12%;
+  top: 33%;
+  width: 76%;
+  overflow: visible;
+  filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.45));
+  transform-origin: 50% 50%;
+  transition: transform 0.45s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+.shades-up .vf-shades { transform: translateY(-104%) rotate(-5deg) scale(0.95); }
+.vf-shades.is-drop { animation: shadesDrop 0.6s cubic-bezier(0.2, 1.45, 0.4, 1) both; }
+@keyframes shadesDrop {
+  0% { transform: translateY(-260%) rotate(-16deg); opacity: 0; }
+  40% { opacity: 1; }
+  100% { transform: none; opacity: 1; }
+}
+.vf-glint { animation: vfGlint 5.5s ease-in-out infinite; }
+@keyframes vfGlint {
+  0%, 72% { transform: translateX(0); }
+  90%, 100% { transform: translateX(150px); }
+}
 .vf-orbit {
   position: absolute;
   inset: -5%;
@@ -561,16 +669,16 @@ body.vesta-dragging {
   position: absolute;
   inset: 0;
   border-radius: 999px;
-  --m: var(--ember);
-  --ms: var(--ember-soft);
-  background: radial-gradient(circle at 40% 35%, #fff4e8, var(--ms) 35%, var(--m) 72%, #1a0a04);
-  box-shadow: 0 0 26px var(--m), inset -8px -10px 18px rgba(0, 0, 0, 0.25);
+  --glow: rgb(var(--ember-rgb) / 0.55);
+  /* a calm ember head (no white-hot centre); the mood only tints the glow around her */
+  background: radial-gradient(circle at 34% 24%, #ffd0ad 0, var(--ember-soft) 14%, var(--ember) 52%, #b4440f 100%);
+  box-shadow: 0 0 16px var(--glow), inset -6px -8px 14px rgba(0, 0, 0, 0.28);
   transition: box-shadow 0.5s;
 }
-.vesta-mini-body.mood-happy { --m: var(--ok); --ms: #b8f5d8; }
-.vesta-mini-body.mood-worried { --m: var(--warn); --ms: #ffe3a1; }
-.vesta-mini-body.mood-alert { --m: var(--bad); --ms: #ffb3ba; }
-.vesta-mini-body.mood-thinking { --ms: #ffe2cc; }
+.vesta-mini-body.mood-happy { --glow: rgb(94 230 168 / 0.6); }
+.vesta-mini-body.mood-worried { --glow: rgb(255 200 87 / 0.6); }
+.vesta-mini-body.mood-alert { --glow: rgb(255 93 108 / 0.75); }
+.vesta-mini-body.mood-thinking { --glow: rgb(255 226 204 / 0.6); }
 
 /* rocket send: a new question lifts into the chat with a little flame trail */
 .vesta-rocket {
@@ -732,23 +840,17 @@ body.vesta-dragging {
 /* ------------------------------------------------------------------ VESTA, round 2: text effects and liveliness
    Decoration only. Numbers are never scrambled; they may only glow once. All of it stops under reduced motion. */
 
-/* eyes follow the pointer; VESTA "listens" while you type */
-.vf-eyes {
-  position: absolute;
-  inset: 0;
-  transform: translate(var(--lx, 0px), var(--ly, 0px));
-  transition: transform 0.18s ease-out;
-}
+/* pupils follow the pointer (see .vf-pupil); VESTA "listens" while you type: eyes widen, the rim pulses */
 .vesta-face.is-listening .vf-eye {
-  height: 22%;
-  width: 13%;
+  height: 21%;
+  width: 17%;
 }
-.vesta-face.is-listening .vf-glow {
+.vesta-face.is-listening .vf-rim {
   opacity: 0.7;
   animation: vfListen 0.7s ease-in-out infinite;
 }
 @keyframes vfListen {
-  50% { box-shadow: 0 0 22px 4px var(--mood), inset 0 0 12px var(--mood); }
+  50% { box-shadow: 0 0 0 2px var(--mood), 0 0 16px 2px var(--mood); }
 }
 
 /* a hat for each answer level */
@@ -762,7 +864,7 @@ body.vesta-dragging {
 }
 .vf-hat-cap { top: -28%; }
 .vf-hat-helmet { top: -30%; }
-.vf-hat-goggles { top: 26%; left: 10%; width: 80%; }
+.vf-hat-headset { top: -12%; left: 4%; width: 92%; }
 @keyframes hatPop {
   0% { transform: translateY(-40%) scale(0.4) rotate(-14deg); opacity: 0; }
   100% { transform: none; opacity: 1; }
@@ -964,7 +1066,9 @@ body.vesta-dragging {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .vf-eyes { transform: none; transition: none; }
+  .vf-pupil { transform: none; transition: none; }
+  .vf-glint, .vf-shades.is-drop { animation: none !important; }
+  .vf-shades, .vf-mouth, .vf-eye { transition: none; }
   .vf-hat, .vesta-scan, .decode-in, .num-glow, .stage-burn, .stage-done, .vesta-stamp > :first-child,
   .vesta-transmission::after, .transmission-tag, .hear-chip, .ignite-a, .ignite-b, .mic-live, .ask-selection,
   .achievement, .page-warp, .reveal-in, .vesta-face.is-listening .vf-glow {
@@ -1247,6 +1351,66 @@ html.present-letterbox .shell-top { top: var(--lb); }
 .present-end { animation: endIn 0.9s ease-out both; }
 @keyframes endIn {
   from { opacity: 0; transform: scale(1.04); }
+}
+
+/* the presentation's big VESTA: she flies in from mini VESTA (motion in VestaActor.tsx), sparks fly as she lands,
+   she says hello, then her chat window unfolds from where she was */
+.vesta-on-stage .vesta-mini-wrap { visibility: hidden; }
+.vesta-actor { will-change: transform; filter: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.55)); }
+.actor-burst {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+}
+.actor-burst i {
+  position: absolute;
+  left: -5px;
+  top: -5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #ffe2cc;
+  box-shadow: 0 0 8px rgb(var(--ember-rgb) / 0.9);
+  animation: actorSpark 0.75s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+.actor-burst i:nth-child(even) { background: #4cc9f0; box-shadow: 0 0 8px rgba(76, 201, 240, 0.8); }
+@keyframes actorSpark {
+  0% { transform: rotate(var(--a)) translateY(-60px) scale(1); opacity: 1; }
+  100% { transform: rotate(var(--a)) translateY(-175px) scale(0.2); opacity: 0; }
+}
+.actor-hello {
+  position: absolute;
+  left: 92%;
+  top: -6%;
+  white-space: nowrap;
+  border: 1px solid #2c3b5e;
+  border-radius: 16px 16px 16px 4px;
+  background: #131b2e;
+  padding: 9px 15px;
+  font-family: var(--font-head, inherit);
+  font-size: 17px;
+  font-weight: 600;
+  color: #e8ecf6;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 0 1px rgb(var(--ember-rgb) / 0.25);
+  animation: helloIn 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+@keyframes helloIn {
+  from { transform: translate(-14px, 10px) scale(0.6); opacity: 0; }
+}
+/* her chat window unfolds from the point where she spun away */
+.vesta-unfold {
+  animation: vestaUnfold 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.08) both;
+  transform-origin: 50% 42%;
+}
+@keyframes vestaUnfold {
+  0% { transform: scale(0.1); opacity: 0; border-radius: 999px; filter: blur(4px); }
+  45% { opacity: 1; filter: blur(0); }
+  100% { transform: none; }
+}
+.present-end-vesta { animation: vestaBob 3s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .vesta-unfold, .actor-hello, .present-end-vesta { animation: none !important; }
+  .actor-burst { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .present-arrow, .present-ripple, .present-spot::after, .present-title, .present-subs, .present-end, .present-card, .present-count, .present-bars, .present-curtain.is-on .present-sweep { animation: none !important; }

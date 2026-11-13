@@ -39,6 +39,11 @@ export function Tour() {
     }
   }, [landing, presenting]);
 
+  // a presentation that starts while the tour is open closes it (not marked as seen: it returns afterwards)
+  useEffect(() => {
+    if (presenting) setStep(null);
+  }, [presenting]);
+
   const finish = useCallback(() => {
     setStep(null);
     try {

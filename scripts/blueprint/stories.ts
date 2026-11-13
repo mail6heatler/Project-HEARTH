@@ -325,9 +325,9 @@ export const STORIES = {
     "components/layout/SideNav.tsx": { title: "Side navigation", story: same("The list of pages. On small screens it moves to a sliding row at the top.") },
     "components/layout/SiteFooter.tsx": { title: "Footer", story: same("Credits at the bottom of every page, plus the link that opens this Blueprint and a button that replays the launch screen.") },
     "components/presenter/DemoPlayer.tsx": { title: "See HEARTH in action", story: same("A short video tour of every page, filmed once from the real site so it plays smoothly every time. The voice, the music and the subtitles can each be switched off, the chapter dots jump to any part, and the video can be downloaded. If the video is missing or will not play, the live presentation runs instead.") },
-    "components/presenter/Presenter.tsx": { title: "Live presentation", story: same("The same tour run live over the real site, as a backup to the video: a presenter cursor glides and clicks through every page in the menu, a spotlight locks onto each feature, VESTA really answers, and Team Polaris narrates with subtitles, sound effects and quiet music. The recorder films exactly this, frame by frame, to make the video.") },
+    "components/presenter/Presenter.tsx": { title: "Live presentation", story: same("The same tour run live over the real site, as a backup to the video: a presenter cursor glides and clicks through every page in the menu, a spotlight locks onto each feature, VESTA flies in from mini VESTA, really answers and draws a chart, and Team Polaris narrates with subtitles, typing sounds, sound effects and quiet music. The recorder films exactly this, frame by frame, to make the video.") },
     "components/layout/LaunchScreen.tsx": { title: "Launch screen", story: same("The hyperspace landing that greets a first visit to the home page: press LAUNCH and the tunnel speeds up, flashes white and fades away to reveal the dashboard. Decoration only; Skip intro or Esc closes it.") },
-    "components/vesta/VestaPanel.tsx": { title: "VESTA panel", story: same("The chat on every page, with the level picker and the Engine room: pick an engine, watch which one is answering, the tokens it burns and the FreeLLMAPI fuel tank. On a computer you can drag it, resize it, expand it, dock it left or right, or hide it into mini VESTA, whose face follows each answer's confidence tag. Poke her for a fact from the data. It moves below the page on small screens.") },
+    "components/vesta/VestaPanel.tsx": { title: "VESTA panel", story: same("The chat on every page, with the level picker and the Engine room: pick an engine, watch which one is answering, the tokens it burns and the FreeLLMAPI fuel tank. On a computer you can drag it, resize it, expand it, dock it left or right, or hide it into mini VESTA. Her face, sunglasses included, follows each answer's confidence tag. Poke her for a fact from the data. It moves below the page on small screens.") },
     "components/fx/Hyperspace.tsx": { title: "Hyperspace easter egg", story: same("Type /warp in the chat for two seconds of hyperspace. Decoration only, and skipped if you prefer reduced motion.") },
     "components/fx/EmberTrail.tsx": { title: "Ember trail", story: same("A few embers drift off your mouse pointer. Decoration only; off on touch screens, with reduced motion, or from the looks menu.") },
     "components/fx/ScrollReveal.tsx": { title: "Scroll reveal", story: same("Panels further down a page rise into view as you scroll to them. Nothing already on screen moves.") },
@@ -383,7 +383,7 @@ export const STORIES = {
   } as Record<string, Story>,
 
   tools: {
-    query_data: same("Looks up and counts tests, returning rows and their sources."),
+    query_data: same("Looks up and counts tests, returning rows and their sources, and every tested oxygen × pressure condition for scatter charts."),
     search_docs: same("Finds passages in the NASA PDFs, with file and page."),
     physics_calc: same("Does the maths with tested formulas and shows the formula used."),
     nearest_tests: same("Finds the NASA tests closest to given conditions."),
@@ -392,7 +392,7 @@ export const STORIES = {
     rank_investigations: same("Scores which experiment matters most for a mission."),
     gap_finder: same("Finds the conditions and fuels nobody has tested."),
     safety_audit: same("Lists prevention, detection and suppression findings with evidence."),
-    make_chart: same("Draws a chart from tool numbers. Invalid charts are rejected."),
+    make_chart: same("Draws a chart from tool numbers, and can mark a mission's own conditions with a big diamond. Invalid charts are rejected."),
     ui_action: same("Moves the dashboard: opens a page, sets a mission, highlights tests."),
   } as Record<string, Story>,
 
@@ -457,7 +457,7 @@ export const STORIES = {
       points: [
         same("Simple rules recognise the question type and pull out numbers like `34%`."),
         same("It calls the very same tools as the AI does."),
-        same("It fills in a template. Unknown questions get a list of what it can do."),
+        same("It fills in a template, and can draw a chart from the same tool numbers. Unknown questions get a list of what it can do."),
       ],
     },
     alert: {

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { GET as factsGET } from "@/app/api/vesta/facts/route";
 import { clampRect, DEFAULT_RECT, expandRect, MIN_H, MIN_W, parseSaved, resizeRect, snapZone, TOP } from "@/components/vesta/windowGeometry";
 import { fmt, spaceFireFacts } from "@/lib/vesta/facts";
-import { moodFor } from "@/lib/vesta/mood";
+import { moodFor, shadesFor } from "@/lib/vesta/mood";
 import { runTool } from "@/lib/vesta/tools";
 
 // ------------------------------------------------------------------ window geometry
@@ -60,6 +60,14 @@ describe("VESTA moods", () => {
     expect(moodFor(false, { role: "vesta", error: "lost" })).toBe("worried");
     expect(moodFor(false, { role: "vesta", alert: "bad", confidence: "supported" })).toBe("alert");
     expect(moodFor(false, { role: "vesta", alert: "ok" })).toBe("idle");
+  });
+
+  it("keeps her sunglasses on when relaxed or pleased and pushes them up otherwise", () => {
+    expect(shadesFor("idle")).toBe("on");
+    expect(shadesFor("happy")).toBe("on");
+    expect(shadesFor("thinking")).toBe("up");
+    expect(shadesFor("worried")).toBe("up");
+    expect(shadesFor("alert")).toBe("up");
   });
 });
 

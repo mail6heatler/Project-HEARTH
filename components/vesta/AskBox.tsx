@@ -22,6 +22,7 @@ const EXAMPLES = [
 const INTENT_LABEL: Partial<Record<Intent, string>> = {
   assess: "check against NASA tests",
   calc: "calculate",
+  chart: "draw a chart",
   compare: "compare experiments",
   gaps: "find data gaps",
   rank: "rank experiments",

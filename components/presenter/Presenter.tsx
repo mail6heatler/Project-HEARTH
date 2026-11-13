@@ -2,8 +2,11 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PolarisMark } from "@/components/ui/Polaris";
+import { Orb } from "@/components/vesta/Orb";
+import { LOOK_EVENT, VestaFace } from "@/components/vesta/VestaFace";
+import { commandVestaWindow } from "@/components/vesta/useVestaWindow";
 import { curvePoint, easeInOutCubic, moveMs, phraseAt, phrases, spotBox, wordIndexOf, type Pt } from "@/lib/presenter/motion";
-import { CHAPTERS, type Action } from "@/lib/presenter/script";
+import { CHAPTERS, vestaSpotAt, type Action } from "@/lib/presenter/script";
 import { encodeWav, type LineTiming } from "@/lib/presenter/demo";
 import { fillNarration, speechMs, type Facts } from "@/lib/presenter/timing";
 import { useHearth, type VestaMessage } from "@/lib/store";
@@ -12,9 +15,19 @@ import { renderSoundtrack, SoundLog, Soundscape, type SoundEvent, type SoundOut 
 import { Narrator } from "./narrator";
 import { startRecording, type Quality, type Recording } from "./recorder";
 import { centerOf, ensureVisible, glow, hoverIn, hoverOut, isZoomed, press, pressKey, resolveTarget, settlePage, settleScroll, unzoom, waitForTarget, zoomTo } from "./stage";
+import { VestaActor, type ActorApi } from "./VestaActor";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const calm = () => typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+/** VESTA's movable window (and mini VESTA) exist on desktop widths only; phones keep the panel below the page. */
+const wide = () => typeof window !== "undefined" && !!window.matchMedia?.("(min-width: 1180px)").matches;
+const ON_STAGE = "vesta-on-stage";
+
+/** Puts VESTA's window where a chapter expects it, without animation (start, restart, chapter jumps). */
+function placeVesta(spot: "mini" | "stage" | "docked") {
+  document.documentElement.classList.remove(ON_STAGE);
+  commandVestaWindow({ type: "set", hidden: spot === "mini", expanded: spot === "stage", dock: "right" });
+}
 const MORPH_MS = 520;
 const BAR_HIDE_MS = 2500;
 
@@ -68,6 +81,8 @@ export function Presenter() {
   const open = useHearth((s) => s.liveOpen);
   const setOpen = useHearth((s) => s.setLiveOpen);
   const presenting = useHearth((s) => s.presenting);
+  const level = useHearth((s) => s.level);
+  const actor = useRef<ActorApi>(null);
 
   // choices on the start card
   const [voiceOn, setVoiceOn] = useState(true);
@@ -202,6 +217,8 @@ export function Presenter() {
   const placeCursor = (p: Pt) => {
     cursorPos.current = p;
     if (cursorEl.current) cursorEl.current.style.transform = `translate3d(${p.x}px, ${p.y}px, 0)`;
+    // VESTA's eyes follow the presenter's cursor
+    window.dispatchEvent(new CustomEvent(LOOK_EVENT, { detail: p }));
   };
 
   /** Glides the cursor along a gentle curve with a smooth start and stop. */
@@ -351,8 +368,10 @@ export function Presenter() {
           for (let i = 1; i <= a.text.length && !signal.aborted; i++) {
             st().setDraft(a.text.slice(0, i));
             if (calm()) continue;
+            const space = a.text[i - 1] === " ";
+            sound.current?.key(space);
             // a human rhythm: quick within words, a beat between them
-            await sleep(a.text[i - 1] === " " ? 70 + Math.random() * 60 : 26 + Math.random() * 34);
+            await sleep(space ? 70 + Math.random() * 60 : 26 + Math.random() * 34);
           }
           await sleep(220);
           const send = resolveTarget('button[aria-label="Send to VESTA"]');
@@ -423,10 +442,69 @@ export function Presenter() {
           return cue(a.word, signal);
         case "wait":
           return wait(a.ms, signal);
+        case "vestaStage": {
+          const mini = wide() ? await waitForTarget("button.vesta-mini", signal, 2500) : null;
+          if (!mini) {
+            // phones (or no mini VESTA): just make sure her chat is open
+            commandVestaWindow({ type: "set", hidden: false, expanded: wide() });
+            return;
+          }
+          if (isZoomed()) await unzoom();
+          spotOn(null);
+          await moveTo(centerOf(mini));
+          // a press on mini VESTA (her ordinary click would open the chat the plain way)
+          glow(mini, true);
+          await sleep(calm() ? 0 : 180);
+          const c = centerOf(mini);
+          setPressKeyN((n) => n + 1);
+          const id = ++rippleId.current;
+          setRipples((r) => [...r.slice(-3), { id, x: c.x, y: c.y }]);
+          setTimeout(() => setRipples((r) => r.filter((x) => x.id !== id)), 900);
+          sound.current?.click();
+          await press(mini);
+          glow(mini, false);
+          const from = mini.getBoundingClientRect();
+          document.documentElement.classList.add(ON_STAGE);
+          await actor.current?.arrive(from, { calm: calm(), hello: a.hello, onRise: () => sound.current?.rise(), onLand: () => sound.current?.sparkle() });
+          if (signal.aborted) return;
+          // she spins down to a point while her chat window unfolds from the same spot
+          sound.current?.pop();
+          commandVestaWindow({ type: "set", hidden: false, expanded: true, dock: "right", anim: "unfold" });
+          await actor.current?.leave(calm());
+          document.documentElement.classList.remove(ON_STAGE);
+          await sleep(calm() ? 0 : 280);
+          return;
+        }
+        case "vestaMini": {
+          if (!wide()) return;
+          if (isZoomed()) await unzoom();
+          spotOn(null);
+          sound.current?.pop();
+          commandVestaWindow({ type: "set", hidden: true, expanded: false, dock: "right", anim: "out" });
+          await sleep(calm() ? 60 : 650);
+          return;
+        }
+        case "vestaDock": {
+          if (!wide()) return;
+          spotOn(null);
+          sound.current?.pop();
+          commandVestaWindow({ type: "set", hidden: false, expanded: false, dock: "right", anim: "pop" });
+          await sleep(calm() ? 60 : 500);
+          return;
+        }
+        case "vestaShow": {
+          const mini = wide() ? await waitForTarget("button.vesta-mini", signal, 2000) : null;
+          if (!mini) return;
+          await moveTo(centerOf(mini));
+          await clickAt(mini);
+          await sleep(calm() ? 60 : 700);
+          return;
+        }
         case "end":
           if (isZoomed()) await unzoom(true);
           spotOn(null);
           setEndCard(true);
+          sound.current?.sparkle();
           return;
       }
     },
@@ -444,6 +522,9 @@ export function Presenter() {
     const s = saved.current;
     saved.current = null;
     st.setPresenting(false);
+    // VESTA's window goes back to how the visitor left it (the show's moves were never saved)
+    document.documentElement.classList.remove(ON_STAGE);
+    commandVestaWindow({ type: "restore" });
     st.setLanding(false);
     st.openTest(null);
     st.setRoomOpen(false);
@@ -479,6 +560,7 @@ export function Presenter() {
       await unzoom(true);
       setEndCard(false);
       setFinished(false);
+      placeVesta(vestaSpotAt(from));
       if (from === 0 && !calm()) {
         // fade in from black
         setBlackout(true);
@@ -573,7 +655,10 @@ export function Presenter() {
     st.setMessages([]);
     st.setDraft("");
     st.setRoomOpen(false);
-    st.requestOpen();
+    // the show starts on the ISS, so picking the lunar rover is a real change that VESTA warns about
+    st.setMission("iss");
+    // VESTA waits as mini VESTA until she is asked
+    placeVesta("mini");
     if (window.location.pathname !== "/") router.push("/");
     pausedRef.current = false;
     setPaused(false);
@@ -624,7 +709,10 @@ export function Presenter() {
     st.setMessages([]);
     st.setDraft("");
     st.setRoomOpen(false);
-    st.requestOpen();
+    // the show starts on the ISS, so picking the lunar rover is a real change that VESTA warns about
+    st.setMission("iss");
+    // VESTA waits as mini VESTA until she is asked
+    placeVesta("mini");
     placeCursor({ x: window.innerWidth / 2, y: window.innerHeight - 160 });
     b.ready = true;
     while (!b.go) await sleep(50);
@@ -760,6 +848,7 @@ export function Presenter() {
             </>
           )}
           <div ref={spotEl} className="present-spot pointer-events-none fixed left-0 top-0 z-[75]" aria-hidden />
+          <VestaActor ref={actor} level={level} />
           <div className={`present-curtain pointer-events-none fixed inset-0 z-[82] ${curtain ? "is-on" : ""}`} aria-hidden>
             <span className="present-sweep" />
           </div>
@@ -836,7 +925,10 @@ export function Presenter() {
           {endCard && (
             <div className="present-end fixed inset-0 z-[84] grid place-items-center bg-[radial-gradient(circle_at_50%_45%,#101a35,rgba(4,6,12,0.97)_65%)] p-4">
               <div className="text-center">
-                <div className="ls-orb mx-auto" aria-hidden />
+                <span className="present-end-vesta relative mx-auto block h-[150px] w-[150px]" aria-hidden>
+                  <Orb thinking={false} size={150} />
+                  <VestaFace mood="happy" level={level} shades="on" shadesDrop={1} />
+                </span>
                 <h2 className="mt-5 font-head text-5xl font-bold tracking-[0.08em] sm:text-7xl">HEARTH</h2>
                 <p className="mt-3 flex items-center justify-center gap-2 text-muted">
                   <PolarisMark size={14} /> by <b className="font-head tracking-[0.12em] text-text">TEAM POLARIS</b>

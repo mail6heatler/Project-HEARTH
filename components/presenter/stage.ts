@@ -34,25 +34,40 @@ export function centerOf(el: Element): { x: number; y: number } {
   return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
 }
 
-/** Brings an element into view if it is mostly off screen, and waits for the scroll to finish. */
-export async function ensureVisible(el: Element, calm: boolean): Promise<void> {
+/** The nearest scrolling box around an element (e.g. VESTA's chat list) that cuts part of it off, if any. */
+function clippingScroller(el: Element): HTMLElement | null {
   const r = el.getBoundingClientRect();
-  const off = r.bottom < 70 || r.top > window.innerHeight - 90;
-  if (!off) return;
-  el.scrollIntoView({ behavior: calm ? "auto" : "smooth", block: "center" });
-  await settleScroll(calm);
+  for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+    if (!/(auto|scroll)/.test(getComputedStyle(p).overflowY) || p.scrollHeight <= p.clientHeight) continue;
+    const b = p.getBoundingClientRect();
+    if (r.top < b.top - 1 || r.bottom > b.bottom + 1) return p;
+  }
+  return null;
 }
 
-/** Waits until the page stops scrolling (smooth scrolls end at different times). */
-export async function settleScroll(calm: boolean): Promise<void> {
+/**
+ * Brings an element into view if it is mostly off screen, or cut off inside a scrolling box such as the
+ * chat list, and waits for the scroll to finish.
+ */
+export async function ensureVisible(el: Element, calm: boolean): Promise<void> {
+  const r = el.getBoundingClientRect();
+  const box = clippingScroller(el);
+  const off = r.bottom < 70 || r.top > window.innerHeight - 90 || !!box;
+  if (!off) return;
+  el.scrollIntoView({ behavior: calm ? "auto" : "smooth", block: "center" });
+  await settleScroll(calm, box);
+}
+
+/** Waits until the page (and the given scrolling box) stop scrolling (smooth scrolls end at different times). */
+export async function settleScroll(calm: boolean, box: HTMLElement | null = null): Promise<void> {
   if (calm) {
     await sleep(30);
     return;
   }
-  let last = -1;
+  let last = "";
   for (let i = 0; i < 20; i++) {
     await sleep(60);
-    const y = window.scrollY;
+    const y = `${window.scrollY}|${box?.scrollTop ?? 0}`;
     if (y === last) return;
     last = y;
   }

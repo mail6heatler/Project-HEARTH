@@ -22,6 +22,7 @@ export const COMMANDS: CommandInfo[] = [
   { name: "compare", hint: "Compare ACME, CFI and SPICE" },
   { name: "gaps", hint: "What has never been tested here?" },
   { name: "rank", hint: "Which experiment matters most here?" },
+  { name: "chart", hint: "Plot every test, O2 against pressure" },
   { name: "fact", hint: "A space fire fact from the data" },
   { name: "level", args: "student | researcher | engineer", hint: "How technical answers are" },
   { name: "skin", args: "ember | nebula | mars | moon", hint: "Change the accent colour" },
@@ -55,6 +56,8 @@ export function parseCommand(text: string, missionName = "this mission"): Comman
       return { kind: "ask", question: `What data is missing for the ${missionName}?` };
     case "rank":
       return { kind: "ask", question: `Which investigation is most relevant for the ${missionName}?` };
+    case "chart":
+      return { kind: "ask", question: "Plot O2 against pressure for every test." };
     case "fact":
       return { kind: "fact" };
     case "warp":

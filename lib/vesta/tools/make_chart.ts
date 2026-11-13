@@ -9,6 +9,7 @@ const SeriesSchema = z.object({
   values: z.array(z.number()).max(MAX_CHART_POINTS).optional().describe("bar / line / radar: one value per category"),
   points: z.array(z.array(z.number()).min(2).max(2)).max(MAX_CHART_POINTS).optional().describe("scatter: [x, y] pairs"),
   cells: z.array(z.array(z.number()).min(3).max(3)).max(MAX_CHART_POINTS).optional().describe("heatmap: [x_index, y_index, value]"),
+  highlight: z.boolean().optional().describe("scatter: draw this series as a large labelled marker, e.g. the mission's own conditions"),
 });
 
 export const MakeChartInput = z.object({
@@ -25,6 +26,8 @@ export const MakeChartInput = z.object({
 export type MakeChartArgs = z.infer<typeof MakeChartInput>;
 
 const PALETTE = ["#4CC9F0", "#A78BFA", "#5EE6A8", "#FF7A2F", "#FFC857", "#FF5D6C", "#FFB98A", "#97A3BC"];
+/** A series named after an investigation always gets that investigation's colour. */
+const INV_COLOR: Record<string, string> = { ACME: "#4CC9F0", CFI: "#A78BFA", SPICE: "#5EE6A8" };
 const AXIS = {
   axisLine: { lineStyle: { color: "#1F2A44" } },
   axisLabel: { color: "#97A3BC" },
@@ -60,10 +63,10 @@ export function buildOption(a: MakeChartArgs): Record<string, unknown> {
   const base = {
     backgroundColor: "transparent",
     color: PALETTE,
-    title: { text: a.title, textStyle: { color: "#E8ECF6", fontSize: 13 } },
+    title: { text: a.title, left: 0, top: 0, textStyle: { color: "#E8ECF6", fontSize: 13 } },
     tooltip: { trigger: a.type === "scatter" || a.type === "heatmap" ? "item" : "axis" },
-    legend: a.series.length > 1 ? { top: 22, textStyle: { color: "#97A3BC" } } : undefined,
-    grid: { left: 48, right: 16, top: a.series.length > 1 ? 56 : 40, bottom: 40, containLabel: true },
+    legend: a.series.length > 1 ? { top: 26, textStyle: { color: "#97A3BC" } } : undefined,
+    grid: { left: 48, right: 16, top: a.series.length > 1 ? 62 : 40, bottom: 40, containLabel: true },
     animationDuration: 700,
   };
   if (a.type === "radar") {
@@ -94,7 +97,20 @@ export function buildOption(a: MakeChartArgs): Record<string, unknown> {
       ...base,
       xAxis: { type: "value", name: a.x_label, scale: true, ...AXIS },
       yAxis: { type: "value", name: a.y_label, scale: true, ...AXIS },
-      series: a.series.map((s) => ({ name: s.name, type: "scatter", symbolSize: 8, data: s.points ?? [] })),
+      series: a.series.map((s) =>
+        s.highlight
+          ? {
+              name: s.name,
+              type: "scatter",
+              data: s.points ?? [],
+              symbol: "diamond",
+              symbolSize: 20,
+              z: 10,
+              itemStyle: { color: "#FF7A2F", borderColor: "#FFF4E8", borderWidth: 2, shadowBlur: 14, shadowColor: "rgba(255,122,47,0.9)" },
+              label: { show: true, formatter: "{a}", position: "top", color: "#FFB98A", fontWeight: "bold" },
+            }
+          : { name: s.name, type: "scatter", symbolSize: 8, data: s.points ?? [], ...(INV_COLOR[s.name] ? { itemStyle: { color: INV_COLOR[s.name], opacity: 0.85 } } : {}) },
+      ),
     };
   }
   return {

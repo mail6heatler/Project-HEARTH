@@ -81,6 +81,10 @@ export function VestaPanel() {
     setUnseen(0);
     win.show();
   };
+  // once her chat is open (by any route, e.g. the presentation), the warnings have been seen
+  useEffect(() => {
+    if (win.mode !== "hidden") setUnseen(0);
+  }, [win.mode]);
 
   // something outside the panel (e.g. "Ask VESTA about this") wants VESTA visible
   const firstRequest = useRef(openRequest);
@@ -148,7 +152,7 @@ export function VestaPanel() {
   const { mode, box, anim } = win;
   const floating = mode === "float" || mode === "expand";
   const draggable = win.isDesktop && mode !== "expand";
-  const animClass = anim === "in" ? "vesta-warp-in" : anim === "out" ? "vesta-warp-out" : anim === "pop" ? "vesta-pop" : "";
+  const animClass = anim === "in" ? "vesta-warp-in" : anim === "out" ? "vesta-warp-out" : anim === "pop" ? "vesta-pop" : anim === "unfold" ? "vesta-unfold" : "";
   const docked = `shell-side relative flex scroll-mt-28 flex-col border-t border-line bg-panel/70 vesta:sticky vesta:top-[49px] vesta:h-[calc(100vh-49px)] vesta:w-[400px] vesta:shrink-0 vesta:border-t-0 ${mode === "left" ? "vesta:border-r" : "vesta:border-l"}`;
   const panelClass =
     mode === "hidden"

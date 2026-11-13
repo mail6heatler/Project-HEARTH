@@ -8,6 +8,19 @@
 
 ## Log
 
+### VESTA takes the stage + her new face (2026-11-13, at the user's request: "go" on the plan)
+**Done**
+- New face: calm ember orb (no white-hot centre, about half the glow, thin mood rim), white eyes with pupils that follow the mouse or the presenter's cursor, a mouth per mood, blush when happy, see-through sunglasses with a glint (on when idle/happy, up on her forehead when thinking/worried/alerted, `shadesFor`). Researcher goggles became a headset so nothing but the shades covers her eyes. Same face in the panel, mini VESTA, the big stage VESTA and the end card.
+- Presentation: starts on the ISS with mini VESTA; picking the rover makes her flag the hazard; on "Ask VESTA" the cursor presses mini VESTA, she flies to the middle (curve, spin, squash), shades drop on with sparks and "Shades on. Let's check the data.", then she spins away as her chat unfolds in the centre. New chapter "VESTA draws charts". She docks for the map, shrinks to mini for lab/dataset/simulator, warps back for the Engine room; big VESTA on the end card. 13 chapters, about 100 s.
+- Sounds: keyboard typing (key + deeper space), a rising whoosh for her flight, a sparkle for the shades, pops; logged and rendered into the recorded soundtrack.
+- Offline chart skill (`chart` intent, `/chart`): scatter of every tested O2 × pressure condition (`query_data` `points: true`), ACME/CFI/SPICE colours, the mission cabin as a labelled diamond (`make_chart` `highlight`), envelope note from `envelope_check`. Chart title and legend no longer overlap.
+- Fixes found while checking: the first-visit tour no longer stays open over a live show; the presenter scrolls things cut off inside VESTA's chat list into view; mini VESTA's warning badge clears whenever her chat opens.
+- 11 new tests. Checked in headless Chrome at 1536×864 (three full runs, every chapter, no page errors, visitor's window restored), face close-ups at 4× pixel ratio, 400 px with reduced motion (no sideways scroll).
+
+**Decisions**
+- The user's picks: mini VESTA by default only during the presentation; the new scatter chart; sunglasses always on (see-through).
+- The show's window moves are never saved; `commandVestaWindow({ type: "restore" })` gives the visitor's own setup back.
+
 ### Recorded demo (2026-11-13, at the user's request: no lag, play a perfect recording every time)
 **Done**
 - "See HEARTH in action" now plays a pre-recorded video (`DemoPlayer.tsx`): voice, subtitles and music + sound effects can each be switched off; chapter dots, seek, full screen, download, keys. The live show stays as the backup (`?present=live`, "Run it live").

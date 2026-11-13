@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { NAV } from "@/components/layout/SideNav";
-import { CHAPTERS } from "@/lib/presenter/script";
+import { CHAPTERS, vestaSpotAt, type VestaSpot } from "@/lib/presenter/script";
 import { chapterMs, fillNarration, pickVoiceName, speechMs, totalMs, wordIndexAt } from "@/lib/presenter/timing";
 
 describe("presentation script", () => {
@@ -21,11 +21,50 @@ describe("presentation script", () => {
     expect(fillNarration("built on {tests} tests", {})).toBe("built on hundreds of tests");
   });
 
-  it("lasts about a minute and a half", () => {
+  it("lasts under two minutes", () => {
     const s = totalMs(CHAPTERS, { tests: 847 }) / 1000;
-    expect(s).toBeGreaterThan(75);
-    expect(s).toBeLessThan(105);
+    expect(s).toBeGreaterThan(85);
+    expect(s).toBeLessThan(120);
     for (const c of CHAPTERS) expect(chapterMs(c)).toBeLessThan(15_000);
+  });
+});
+
+describe("VESTA in the presentation", () => {
+  it("starts as mini VESTA and is only asked things while her chat is open", () => {
+    expect(vestaSpotAt(0)).toBe("mini");
+    let spot: VestaSpot = "mini";
+    for (const c of CHAPTERS) {
+      expect(vestaSpotAt(CHAPTERS.indexOf(c)), c.id).toBe(spot);
+      for (const a of c.actions) {
+        const needsChat = a.do === "ask" || (a.do === "click" && typeof a.on === "string" && a.on.includes("engine-room")) || (a.do === "hover" && JSON.stringify(a.on).includes("vesta-panel"));
+        if (needsChat) expect(spot, `${c.id}: ${a.do}`).not.toBe("mini");
+        // she can only fly in or warp back from mini VESTA
+        if (a.do === "vestaStage" || a.do === "vestaShow") expect(spot, c.id).toBe("mini");
+        if (a.do === "vestaStage") spot = "stage";
+        else if (a.do === "vestaDock" || a.do === "vestaShow") spot = "docked";
+        else if (a.do === "vestaMini") spot = "mini";
+      }
+    }
+  });
+
+  it("flies in to answer, draws a chart, and her own lines hold no numbers", () => {
+    const actions = CHAPTERS.flatMap((c) => c.actions);
+    const stage = actions.find((a) => a.do === "vestaStage");
+    expect(stage).toBeTruthy();
+    for (const a of actions) if (a.do === "vestaStage" && a.hello) expect(a.hello).not.toMatch(/\d/);
+    const chart = CHAPTERS.find((c) => c.id === "chart")!;
+    expect(chart.actions.some((a) => a.do === "ask" && /plot|chart/i.test(a.text))).toBe(true);
+  });
+
+  it("writes down the new sounds for the recorded soundtrack", async () => {
+    const { SoundLog } = await import("@/components/presenter/audio");
+    const log = new SoundLog();
+    log.key();
+    log.key(true);
+    log.rise();
+    log.sparkle();
+    log.pop();
+    expect(log.events.map((e) => e.type)).toEqual(["key", "space", "rise", "sparkle", "pop"]);
   });
 });
 

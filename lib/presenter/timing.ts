@@ -23,9 +23,12 @@ export function speechMs(text: string, wpm: number = WORDS_PER_MINUTE): number {
   return Math.round((wordCount(text) / wpm) * 60_000);
 }
 
+/** Rough time of the longer on-screen moves (ms); anything else counts as a short move. */
+const ACTION_MS: Partial<Record<Chapter["actions"][number]["do"], number>> = { launch: 3200, vestaStage: 3400, vestaShow: 1200, vestaMini: 650, vestaDock: 500 };
+
 /** Rough length of one chapter: its narration or its own waits, whichever is longer, plus moving about. */
 export function chapterMs(ch: Chapter, facts: Facts = { tests: 1000 }): number {
-  const waits = ch.actions.reduce((sum, a) => sum + (a.do === "wait" ? a.ms : a.do === "hover" ? (a.ms ?? 1200) : a.do === "launch" ? 3200 : 700), 0);
+  const waits = ch.actions.reduce((sum, a) => sum + (a.do === "wait" ? a.ms : a.do === "hover" ? (a.ms ?? 1200) : (ACTION_MS[a.do] ?? 700)), 0);
   return Math.max(speechMs(fillNarration(ch.say, facts)), waits) + 600;
 }
 

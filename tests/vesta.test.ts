@@ -344,7 +344,30 @@ describe("offline mode", () => {
     expect(detectIntent("How does ISS cabin air compare with the ISS reference pO2?")).toBe("calc");
     expect(detectIntent("Compare the investigations")).toBe("compare");
     expect(detectIntent("What is a cool flame?")).toBe("explain_topic");
+    expect(detectIntent("Plot O2 against pressure for every test")).toBe("chart");
+    expect(detectIntent("Show me a graph of the SPICE tests")).toBe("chart");
     expect(detectIntent("sing me a song")).toBe("unknown");
+  });
+
+  it("plots every tested condition with the mission's cabin marked, from tool results only", async () => {
+    const out = await runOffline({ message: "Plot O2 against pressure for every test", missionId: "lunar-rover", level: "researcher", emit: () => {} });
+    expect(out.intent).toBe("chart");
+    expect(out.charts).toHaveLength(1);
+    const option = out.charts[0].option as { series: { name: string; type: string; data: number[][]; symbol?: string; itemStyle?: { color?: string } }[] };
+    expect(option.series.map((s) => s.name)).toEqual(["ACME", "CFI", "SPICE", "Lunar rover cabin"]);
+    expect(option.series.every((s) => s.type === "scatter")).toBe(true);
+    // investigation colours, and the cabin as one big diamond at the mission's own conditions
+    expect(option.series[0].itemStyle?.color).toBe("#4CC9F0");
+    const cabin = option.series[3];
+    expect(cabin.symbol).toBe("diamond");
+    expect(cabin.data).toEqual([[8.2, 34]]);
+    expect(out.confidence).toBe("supported");
+    // the first sources are the tests around the cabin
+    expect(out.sources[0].test_id).toBeTruthy();
+    expect(checkGrounding(out.text, out.known).unverified).toEqual([]);
+    // only the investigations that were asked for
+    const one = await runOffline({ message: "Plot the CFI tests", level: "researcher", emit: () => {} });
+    expect((one.charts[0].option as { series: { name: string }[] }).series.map((s) => s.name)).toEqual(["CFI"]);
   });
 
   const cases: [string, string[]][] = [
@@ -356,6 +379,7 @@ describe("offline mode", () => {
     ["Run a safety audit for the rover", ["physics_calc", "envelope_check", "nearest_tests", "safety_audit"]],
     ["Explain ACME-CFIG-128", ["query_data", "physics_calc", "ui_action"]],
     ["What is a cool flame?", ["search_docs"]],
+    ["Plot O2 against pressure for every test", ["envelope_check", "query_data", "make_chart"]],
   ];
   for (const [q, tools] of cases) {
     it(`answers "${q}" with tools, sources, confidence and only grounded numbers`, async () => {

@@ -16,6 +16,14 @@ export interface SoundOut {
   start(): void;
   click(): void;
   whoosh(): void;
+  /** One key of the keyboard while a question is typed (the space bar sounds deeper). */
+  key(space?: boolean): void;
+  /** VESTA flies in: a rising whoosh. */
+  rise(): void;
+  /** Her sunglasses land: a short sparkle. */
+  sparkle(): void;
+  /** She pops into her window or back into mini VESTA. */
+  pop(): void;
   duck(speaking: boolean): void;
   setMusic(on: boolean): void;
   setSfx(on: boolean): void;
@@ -24,7 +32,7 @@ export interface SoundOut {
 
 /** A sound in a recording, `at` seconds from its start. */
 export interface SoundEvent {
-  type: "click" | "whoosh" | "duck";
+  type: "click" | "whoosh" | "key" | "space" | "rise" | "sparkle" | "pop" | "duck";
   at: number;
   on?: boolean;
 }
@@ -70,7 +78,7 @@ export class Soundscape implements SoundOut {
     this.sfx = ctx.createGain();
     this.sfx.gain.value = this.sfxOn ? 1 : 0;
     this.sfx.connect(ctx.destination);
-    const len = Math.floor(ctx.sampleRate * 0.6);
+    const len = Math.floor(ctx.sampleRate * 1.2);
     this.noise = ctx.createBuffer(1, len, ctx.sampleRate);
     const d = this.noise.getChannelData(0);
     for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
@@ -188,6 +196,108 @@ export class Soundscape implements SoundOut {
     src.stop(t + 0.55);
   }
 
+  /** A keyboard key: the click of the keycap (a tiny band of noise) and the soft thock as it bottoms out. */
+  key(space = false, at?: number) {
+    const ctx = this.ctx;
+    if (!ctx || !this.sfx || !this.noise || !this.sfxOn) return;
+    const t = at ?? ctx.currentTime;
+    const vary = 0.8 + Math.random() * 0.4;
+    const src = ctx.createBufferSource();
+    src.buffer = this.noise;
+    const bp = ctx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.Q.value = 2.2;
+    bp.frequency.value = space ? 1300 : 2500 + Math.random() * 1500;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime((space ? 0.1 : 0.065) * vary, t + 0.002);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + (space ? 0.05 : 0.03));
+    src.connect(bp).connect(g).connect(this.sfx);
+    src.start(t, Math.random() * 0.8);
+    src.stop(t + 0.07);
+    const o = ctx.createOscillator();
+    const og = ctx.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(space ? 140 : 210, t);
+    o.frequency.exponentialRampToValueAtTime(space ? 70 : 110, t + 0.04);
+    og.gain.setValueAtTime(0.0001, t);
+    og.gain.exponentialRampToValueAtTime((space ? 0.08 : 0.045) * vary, t + 0.003);
+    og.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+    o.connect(og).connect(this.sfx);
+    o.start(t);
+    o.stop(t + 0.08);
+  }
+
+  /** VESTA flies in: noise sweeping up with a soft rising tone. */
+  rise(at?: number) {
+    const ctx = this.ctx;
+    if (!ctx || !this.sfx || !this.noise || !this.sfxOn) return;
+    const t = at ?? ctx.currentTime;
+    const src = ctx.createBufferSource();
+    src.buffer = this.noise;
+    const bp = ctx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.Q.value = 1.4;
+    bp.frequency.setValueAtTime(300, t);
+    bp.frequency.exponentialRampToValueAtTime(3200, t + 0.85);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.12, t + 0.5);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.95);
+    src.connect(bp).connect(g).connect(this.sfx);
+    src.start(t);
+    src.stop(t + 1);
+    const o = ctx.createOscillator();
+    const og = ctx.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(260, t);
+    o.frequency.exponentialRampToValueAtTime(780, t + 0.8);
+    og.gain.setValueAtTime(0.0001, t);
+    og.gain.exponentialRampToValueAtTime(0.035, t + 0.6);
+    og.gain.exponentialRampToValueAtTime(0.0001, t + 0.95);
+    o.connect(og).connect(this.sfx);
+    o.start(t);
+    o.stop(t + 1);
+  }
+
+  /** The sunglasses land: four quick high notes. */
+  sparkle(at?: number) {
+    const ctx = this.ctx;
+    if (!ctx || !this.sfx || !this.sfxOn) return;
+    const t0 = at ?? ctx.currentTime;
+    [1318.5, 1661.2, 1975.5, 2637].forEach((f, i) => {
+      const t = t0 + i * 0.07;
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = "triangle";
+      o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.045, t + 0.006);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+      o.connect(g).connect(this.sfx!);
+      o.start(t);
+      o.stop(t + 0.4);
+    });
+  }
+
+  /** A soft, bubbly pop. */
+  pop(at?: number) {
+    const ctx = this.ctx;
+    if (!ctx || !this.sfx || !this.sfxOn) return;
+    const t = at ?? ctx.currentTime;
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(520, t);
+    o.frequency.exponentialRampToValueAtTime(170, t + 0.12);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.12, t + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+    o.connect(g).connect(this.sfx);
+    o.start(t);
+    o.stop(t + 0.18);
+  }
+
   /** The music fades away over the last seconds of a recording. */
   fadeOut(at: number, seconds: number) {
     if (this.music) this.music.gain.setTargetAtTime(0, at, seconds / 3);
@@ -232,6 +342,18 @@ export class SoundLog implements SoundOut {
   whoosh() {
     this.log("whoosh");
   }
+  key(space = false) {
+    this.log(space ? "space" : "key");
+  }
+  rise() {
+    this.log("rise");
+  }
+  sparkle() {
+    this.log("sparkle");
+  }
+  pop() {
+    this.log("pop");
+  }
   duck(speaking: boolean) {
     this.log("duck", speaking);
   }
@@ -251,6 +373,10 @@ export async function renderSoundtrack(events: SoundEvent[], seconds: number, sa
   for (const e of [...events].sort((a, b) => a.at - b.at)) {
     if (e.type === "click") s.click(e.at);
     else if (e.type === "whoosh") s.whoosh(e.at);
+    else if (e.type === "key" || e.type === "space") s.key(e.type === "space", e.at);
+    else if (e.type === "rise") s.rise(e.at);
+    else if (e.type === "sparkle") s.sparkle(e.at);
+    else if (e.type === "pop") s.pop(e.at);
     else s.duck(!!e.on, e.at);
   }
   s.fadeOut(Math.max(0, seconds - 3), 2.5);

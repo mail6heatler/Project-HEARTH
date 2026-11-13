@@ -9,12 +9,12 @@ type Variant = "vesta" | "flame";
 
 /** rgb + peak opacity. Each layer fades to nothing at its own edge, so the flame has no hard outline. */
 const LAYERS: Record<Variant, { k: number; rgb: string; a: number }[]> = {
-  // VESTA's core: all ember
+  // VESTA's head: a warm, even ember with no white-hot centre, so her face reads clearly on top
   vesta: [
-    { k: 1.08, rgb: "255,122,47", a: 0.5 },
-    { k: 0.8, rgb: "255,140,70", a: 0.8 },
-    { k: 0.5, rgb: "255,190,140", a: 0.95 },
-    { k: 0.28, rgb: "255,244,232", a: 1 },
+    { k: 1.12, rgb: "255,122,47", a: 0.22 },
+    { k: 0.98, rgb: "226,92,30", a: 1 },
+    { k: 0.84, rgb: "255,122,48", a: 0.95 },
+    { k: 0.6, rgb: "255,150,86", a: 0.55 },
   ],
   // Hero artwork: a round flame with a blue outer shell and a warm core
   flame: [
@@ -48,6 +48,7 @@ export function Orb({ thinking, size = 44, variant = "vesta" }: { thinking: bool
     const center = size / 2;
     const radius = center * 0.8;
     const layers = LAYERS[variant];
+    const head = variant === "vesta";
     let raf = 0;
     let last = 0;
     let t = 1;
@@ -57,10 +58,11 @@ export function Orb({ thinking, size = 44, variant = "vesta" }: { thinking: bool
     const draw = () => {
       heat += ((thinkingRef.current ? 1 : 0) - heat) * 0.08;
       ctx.clearRect(0, 0, size, size);
-      ctx.globalCompositeOperation = "lighter";
+      // the hero flame adds its layers up into a white-hot core; VESTA's head paints them over each other
+      ctx.globalCompositeOperation = head ? "source-over" : "lighter";
 
-      const glow = ctx.createRadialGradient(center, center, radius * 0.2, center, center, center);
-      glow.addColorStop(0, `rgba(255,122,47,${0.3 + heat * 0.2})`);
+      const glow = ctx.createRadialGradient(center, center, radius * (head ? 0.7 : 0.2), center, center, center);
+      glow.addColorStop(0, `rgba(255,122,47,${head ? 0.16 + heat * 0.14 : 0.3 + heat * 0.2})`);
       glow.addColorStop(1, "rgba(255,122,47,0)");
       ctx.fillStyle = glow;
       ctx.fillRect(0, 0, size, size);
@@ -88,13 +90,23 @@ export function Orb({ thinking, size = 44, variant = "vesta" }: { thinking: bool
       });
 
       ctx.globalCompositeOperation = "source-over";
+      if (head) {
+        // a soft highlight on the forehead gives the head some roundness, away from the eyes
+        const hx = center - radius * 0.32;
+        const hy = center - radius * 0.5;
+        const shine = ctx.createRadialGradient(hx, hy, 0, hx, hy, radius * 0.36);
+        shine.addColorStop(0, "rgba(255,226,200,0.42)");
+        shine.addColorStop(1, "rgba(255,226,200,0)");
+        ctx.fillStyle = shine;
+        ctx.fillRect(0, 0, size, size);
+      }
       const rings = variant === "flame" ? 2 : 1;
       for (let i = 0; i < rings; i++) {
         const tilt = i === 0 ? 0.42 : -0.5;
         const spin = t * (0.5 + heat * 1.1) * (i === 0 ? 1 : -0.7);
         const rx = center * (i === 0 ? 0.94 : 0.82);
         const ry = rx * 0.32;
-        ctx.strokeStyle = i === 0 ? "rgba(255,185,138,0.34)" : "rgba(76,201,240,0.3)";
+        ctx.strokeStyle = i === 0 ? `rgba(255,185,138,${head ? 0.22 : 0.34})` : "rgba(76,201,240,0.3)";
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.ellipse(center, center, rx, ry, tilt, 0, TAU);

@@ -27,6 +27,15 @@ export type Action =
   | { do: "key"; key: string }
   | { do: "cue"; word: string }
   | { do: "wait"; ms: number }
+  /** The cursor presses mini VESTA: she flies to the middle, spins, drops her sunglasses on, says `hello`
+   *  (VESTA's own words: never a number), then her big chat window unfolds from where she was. */
+  | { do: "vestaStage"; hello?: string }
+  /** VESTA shrinks into mini VESTA (bottom right) and the page gets the whole screen. */
+  | { do: "vestaMini" }
+  /** Her big chat window docks back on the right. */
+  | { do: "vestaDock" }
+  /** The cursor clicks mini VESTA and she warps back in on the right, as a visitor would do it. */
+  | { do: "vestaShow" }
   | { do: "end" };
 
 export interface Chapter {
@@ -52,7 +61,7 @@ export const CHAPTERS: Chapter[] = [
     id: "overview",
     title: "Mission overview",
     nav: "/",
-    say: "On Mission overview, pick a habitat and see its air at a glance. Every page, and our crewmate VESTA, follow it.",
+    say: "On Mission overview, pick a habitat and see its air at a glance. Mini VESTA flags the hazard straight away.",
     actions: [
       { do: "spot", on: "#tour-missions", pad: 6 },
       { do: "cue", word: "pick" },
@@ -60,21 +69,34 @@ export const CHAPTERS: Chapter[] = [
       { do: "cue", word: "glance" },
       { do: "spot", on: FIRST_PANEL, pad: 6 },
       { do: "zoom", on: FIRST_PANEL, scale: 1.1 },
-      { do: "cue", word: "follow" },
-      { do: "wait", ms: 900 },
+      { do: "cue", word: "Mini" },
       { do: "unzoom" },
+      { do: "spot", on: ".vesta-mini-wrap", pad: 10 },
+      { do: "wait", ms: 1300 },
     ],
   },
   {
     id: "vesta",
     title: "Ask VESTA",
-    say: "Ask VESTA in plain words. She checks the NASA data with her tools, cites every source, and tags how sure she is.",
+    say: "Ask VESTA in plain words. She flies in, checks the NASA data with her tools, cites every source, and tags how sure she is.",
     actions: [
-      { do: "spot", on: "#vesta-input", pad: 8 },
+      { do: "vestaStage", hello: "Shades on. Let's check the data." },
       { do: "ask", text: "Is my rover cabin inside the tested data?" },
       { do: "waitVesta" },
       { do: "spot", on: LAST_ANSWER, pad: 4 },
-      { do: "wait", ms: 1500 },
+      { do: "wait", ms: 1300 },
+    ],
+  },
+  {
+    id: "chart",
+    title: "VESTA draws charts",
+    say: "Ask for a chart, and she plots every NASA test, oxygen against pressure, with your rover cabin marked. Not one made-up point.",
+    actions: [
+      { do: "ask", text: "Plot O2 against pressure for every test" },
+      { do: "waitVesta" },
+      { do: "spot", on: `${LAST_ANSWER} figure`, pad: 6 },
+      { do: "cue", word: "marked" },
+      { do: "wait", ms: 2000 },
     ],
   },
   {
@@ -82,9 +104,10 @@ export const CHAPTERS: Chapter[] = [
     title: "VESTA drives the map",
     say: "Her answers light up the matching tests on the habitat map.",
     actions: [
+      { do: "vestaDock" },
       { do: "scroll", to: "#tour-map" },
       { do: "spot", on: "#tour-map", pad: 4 },
-      { do: "hover", on: '#vesta-panel button[title*="lights it up"]', ms: 2400 },
+      { do: "hover", on: `${LAST_ANSWER} button[title*="lights it up"]`, ms: 2400 },
     ],
   },
   {
@@ -140,6 +163,7 @@ export const CHAPTERS: Chapter[] = [
     nav: "/lab",
     say: "My data lab checks your own conditions against NASA's, right in your browser.",
     actions: [
+      { do: "vestaMini" },
       { do: "nav", path: "/lab" },
       { do: "spot", on: FIRST_PANEL, pad: 6 },
       { do: "zoom", on: FIRST_PANEL, scale: 1.08 },
@@ -185,6 +209,7 @@ export const CHAPTERS: Chapter[] = [
       { do: "nav", path: "/about" },
       { do: "spot", on: FIRST_PANEL, pad: 6 },
       { do: "cue", word: "if" },
+      { do: "vestaShow" },
       { do: "click", on: 'button[aria-controls="engine-room"]' },
       { do: "spot", on: "#engine-room", pad: 4 },
       { do: "wait", ms: 1900 },
@@ -198,3 +223,18 @@ export const CHAPTERS: Chapter[] = [
     actions: [{ do: "end" }, { do: "wait", ms: 2400 }],
   },
 ];
+
+/** Where VESTA's window is: mini VESTA, the big centre window she unfolds into, or docked on the right. */
+export type VestaSpot = "mini" | "stage" | "docked";
+
+/** Where VESTA's window is when chapter `index` starts (the show begins with mini VESTA), so any chapter can be jumped to. */
+export function vestaSpotAt(index: number, chapters: Chapter[] = CHAPTERS): VestaSpot {
+  let spot: VestaSpot = "mini";
+  for (const c of chapters.slice(0, index))
+    for (const a of c.actions) {
+      if (a.do === "vestaStage") spot = "stage";
+      else if (a.do === "vestaDock" || a.do === "vestaShow") spot = "docked";
+      else if (a.do === "vestaMini") spot = "mini";
+    }
+  return spot;
+}
